@@ -13,9 +13,12 @@
 #' @param onedir = Par défaut les différents statuts sont rangés dans des dossiers différents
 #' (onedir=FALSE). Si onedir = TRUE, les différents statuts sont rangés dans un seul dossier
 #' appelé StatutProtect.
+#' @param map = permet d'afficher une carte avec les différents statuts de protection. Par défaut
+#' map = FALSE
 #'
 #' @import sf
 #' @import tools
+#' @import rmapshaper
 #'
 #' @author Bruciamacchie Max
 #'
@@ -24,11 +27,11 @@
 #' library(tools, quietly =T, warn.conflicts =F)
 #' ##### Données
 #' data(perim)
-#' NetProtectData(perim, width=100)
+#' NetProtectData(perim, width=100, map=TRUE)
 #'
 #' @export
 
-NetProtectData <- function(shp, width=50, inter=TRUE, onedir = FALSE){
+NetProtectData <- function(shp, width=50, inter=TRUE, onedir = FALSE, map=FALSE){
   if (sum(class(shp) %in% c("SpatialPolygonsDataFrame","sf")) > 0) {
     if (class(shp) == "SpatialPolygonsDataFrame") {
       shp <- st_as_sf(shp)
@@ -73,6 +76,41 @@ NetProtectData <- function(shp, width=50, inter=TRUE, onedir = FALSE){
       }
 
     }
+
+    if(map){
+      nb_statut = list.dirs("StatutProtect", full.names=T, recursive = T)
+      couches = unique(list.files(nb_statut, pattern="*.shp$", recursive = T, full.names =T))
+      noms <- str_sub(couches, start = str_locate(couches, "StatutProtect/")[,2]+1)
+
+      for(i in 1:length(couches)) {
+        nom <- basename(file_path_sans_ext(couches[i]))
+        temp <- st_read(couches[i], quiet=T) %>%
+          st_transform(2154) %>%
+          st_intersection(st_buffer(shp, dist=10)) %>%
+          mutate(Nom = noms[i]) %>%
+          dplyr::select(Nom)
+        if (i == 1) {
+          Protect <- temp
+        } else {
+          Protect <- rbind(Protect, temp)
+        }
+        print(paste("Fusion de la couche ......... ", noms[i]))
+      }
+
+      Protect <- Protect %>% ms_simplify(keep = 0.05)
+
+      MyTheme <- theme(axis.ticks = element_blank(),
+                       axis.text = element_blank(),
+                       panel.background = element_blank(),
+                       strip.text.x = element_text(size = 8))
+
+      g <- ggplot() +
+        geom_sf(data=shp) +
+        geom_sf(data=Protect, fill='darkred', alpha=0.5, size=0.2) +
+        facet_wrap(~ Nom, ncol=4) +
+        MyTheme
+    }
+    return(g)
   } else { print("Le fichier en entrée doit être au format SpatialPolygonsDataFrame ou sf")}
 }
 

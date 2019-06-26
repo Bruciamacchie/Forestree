@@ -4,7 +4,8 @@
 \alias{NetProtectData}
 \title{Recherche statuts de protection}
 \usage{
-NetProtectData(shp, width = 50, inter = TRUE, onedir = FALSE)
+NetProtectData(shp, width = 50, inter = TRUE, onedir = FALSE,
+  map = FALSE)
 }
 \arguments{
 \item{shp}{= périmètre du territoire au format sf ou shp.}
@@ -16,6 +17,9 @@ NetProtectData(shp, width = 50, inter = TRUE, onedir = FALSE)
 \item{onedir}{= Par défaut les différents statuts sont rangés dans des dossiers différents
 (onedir=FALSE). Si onedir = TRUE, les différents statuts sont rangés dans un seul dossier
 appelé StatutProtect.}
+
+\item{map}{= permet d'afficher une carte avec les différents statuts de protection. Par défaut
+map = FALSE}
 }
 \value{
 La fonction crée un dossier appelé StatutProtect qui contiendra tous les statuts de protection
@@ -31,7 +35,7 @@ library(sf, quietly =T, warn.conflicts =F)
 library(tools, quietly =T, warn.conflicts =F)
 ##### Données
 data(perim)
-NetProtectData(perim, width=100)
+NetProtectData(perim, width=100, map=TRUE)
 
 }
 \author{

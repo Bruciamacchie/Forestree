@@ -4,8 +4,7 @@
 \alias{NetProtectData}
 \title{Recherche statuts de protection}
 \usage{
-NetProtectData(shp, width = 50, inter = TRUE, onedir = FALSE,
-  map = FALSE)
+NetProtectData(shp, width = 50, inter = TRUE, onedir = FALSE, map = FALSE)
 }
 \arguments{
 \item{shp}{= périmètre du territoire au format sf ou shp.}

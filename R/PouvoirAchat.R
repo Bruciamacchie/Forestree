@@ -6,19 +6,20 @@
 #'
 #' @param an = année retenue
 #'
-#' @import dplyr
+#' @import tidyverse
 #'
 #' @author Bruciamacchie Max
 #'
 #' @examples
 #' library(Forestree)
+#' library(DataForet)
 #' data(PA)
-#' Coeft <- PouvoirAchat(2002)
+#' Coeft <- PouvoirAchat(2018)
 #'
 #' @export
 
 PouvoirAchat <- function(an) {
-  if (is.numeric(an) & an <= 2018 & an >=1950 ) {
+  if (is.numeric(an) & an <= 2019 & an >=1950 ) {
     data(PA)
     euro=6.55957
     tab <- PA %>% filter(Année <= an)
@@ -30,5 +31,6 @@ PouvoirAchat <- function(an) {
              Infla = valmax/Infla,
              Coefft = Coefft * Infla) %>%
       dplyr::select(Année, Coefft)
+    return(tab)
   } else { print("l'année doit être un entier compris entre 1950 et 2018.")}
 }

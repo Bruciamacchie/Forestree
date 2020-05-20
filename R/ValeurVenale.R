@@ -39,11 +39,13 @@
 #' @export
 
 ValeurVenale <- function(an, minSurf=1, maxPrix=50000) {
-  if (is.numeric(an) & (an <=2018 & an >= 2016)){
-    liens = data.frame(Année = c(2018:2016),
+  if (is.numeric(an) & (an <=2018 & an >= 2014)){
+    liens = data.frame(Année = c(2018:2014),
                        url = c("https://www.data.gouv.fr/fr/datasets/r/1be77ca5-dc1b-4e50-af2b-0240147e0346",
                                "https://www.data.gouv.fr/fr/datasets/r/7161c9f2-3d91-4caf-afa2-cfe535807f04",
-                               "https://www.data.gouv.fr/fr/datasets/r/0ab442c5-57d1-4139-92c2-19672336401c"))
+                               "https://www.data.gouv.fr/fr/datasets/r/0ab442c5-57d1-4139-92c2-19672336401c",
+                               "https://www.data.gouv.fr/fr/datasets/r/09f013c5-9531-444b-ab6c-7a0e88efd77d",
+                               "https://www.data.gouv.fr/fr/datasets/r/dc13282f-3c7a-4fac-b1f3-3939e39d45f6"))
 
     # ------------- Import
     print(paste("Traitement de l'année", an))
@@ -51,7 +53,8 @@ ValeurVenale <- function(an, minSurf=1, maxPrix=50000) {
     url <- as.character(liens$url[pos])
     print("Recherche du lien internet")
 
-    t1 <- read_delim(url, delim="|")
+    # t1 <- read_delim(url, delim="|")
+    t1 <- read_delim(url, delim="|",locale=locale(decimal_mark = ","))
     print("Fin de l'import")
 
     tab <- t1 %>%
@@ -85,8 +88,9 @@ ValeurVenale <- function(an, minSurf=1, maxPrix=50000) {
     tab <- tab %>%
       filter(Iden %in% ListeForet$Iden) %>%
       dplyr::select(Iden,Foret,CodePos,NumDis,Nature,Type,Surf,Valeur) %>%
-      mutate(Valeur = as.numeric(Valeur)/100,
-             Surf = as.numeric(Surf)/10000) %>%
+      mutate(Surf = Surf/10000) %>%
+      # mutate(Valeur = as.numeric(Valeur)/100,
+      #        Surf = as.numeric(Surf)/10000) %>%
       filter(!is.na(Surf))
 
     print("Fin premières mises en forme")
@@ -132,5 +136,5 @@ ValeurVenale <- function(an, minSurf=1, maxPrix=50000) {
 
     return(out)
 
-  } else {cat("L'année doit être comprise entre 2016 et 2018")}
+  } else {cat("L'année doit être comprise entre 2014 et 2018")}
 }

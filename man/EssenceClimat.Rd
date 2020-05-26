@@ -9,8 +9,8 @@ EssenceClimat(ess, laps = 7)
 \arguments{
 \item{ess}{= code d'une ou plusieurs essences selon la codification de l'IFN}
 
-\item{laps}{= laps de temps sur lequel est calculée la moyenne des volumes. Par défaut les calculs
-portent sur les 7 dernières années.}
+\item{laps}{= laps de temps sur lequel est calculée la moyenne des volumes. Il peut être compris entre 1 et 10,
+Par défaut les calculs portent sur les 7 dernières années.}
 }
 \description{
 Cartographie du volume d'une ou plusieurs essences par type de climat.
@@ -18,6 +18,7 @@ Cartographie du volume d'une ou plusieurs essences par type de climat.
 \examples{
 library(sf)
 library(tidyverse)
+library(DataForet)
 EssenceClimat(c("02","03","05","06"))
 EssenceClimat(c("09","61","62","52"))
 EssenceClimat("09")

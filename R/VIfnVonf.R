@@ -21,12 +21,20 @@
 #' @export
 
 Vifn_Vonf <- function(ess = "09"){
+  # ---- Test -------------
+  ess <- ess[which(ess %in% CodesEssIFN$code)]
+  if (length(ess) == 0) {
+    stop("Les essences doivent être désignées par leur code IFN")
+  }
+
+  # ---- Données -------------
   data(IFNarbres)
   data(IFNplacettes)
-  data(ser)
+  data(ser25)
 
   df <- IFNarbres %>%
     filter(espar %in% ess) %>%
+    mutate(espar = as.character(espar)) %>%
     filter(!is.na(v)) %>%
     filter(!is.na(htot)) %>%
     filter(htot > 1.3) %>%
@@ -37,28 +45,29 @@ Vifn_Vonf <- function(ess = "09"){
     filter(!is.na(ser)) %>%
     mutate(Vifn = v*w,
            Vonf = VTot*w) %>%
-    group_by(ser,Essence) %>%
+    group_by(ser, espar, libelle) %>%
     summarise(Vifn = sum(Vifn),
               Vonf = sum(Vonf)) %>%
     ungroup() %>%
     mutate(ratio = Vonf / Vifn,
            codeser = as.character(ser)) %>%
-    dplyr::select(codeser,Essence,ratio)
+    dplyr::select(codeser,libelle,ratio)
 
-  ser <- ser %>%
+
+  ser <- ser25 %>%
     group_by(codeser) %>%
-    summarise() %>%
-    ms_sim
+    summarise()
 
   df <- df %>%
     left_join(ser, by = "codeser") %>%
     st_sf()
 
-  g <- ggplot(df) +
-    geom_sf(aes(fill=ratio), color='grey90', lwd=0.5) +
-    scale_fill_gradient(low = "white", high = "green4", na.value = "grey80") +
+  g <- ggplot() +
+    geom_sf(data=ser, fill='grey60', color='grey80', lwd=0.5) +
+    geom_sf(data=df, aes(fill=ratio), color='grey90', lwd=0.5) +
+    scale_fill_gradient(low = "white", high = "green4", na.value = "grey60") +
     theme_bw() +
-    facet_wrap(~ Essence, ncol=2)
+    facet_wrap(~ libelle, ncol=2)
 
   out=list(ser, g)
   names(out) <- c("ser", "g")

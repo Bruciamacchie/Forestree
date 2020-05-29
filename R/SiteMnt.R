@@ -14,10 +14,13 @@
 #' @examples
 #' \donttest{
 #' library(elevatr)
-#' data(razel)
-#' r <- SiteMnt(razel)
+#' library(raster)
+#' library(sf)
+#' perim <- FD %>% filter(IIDTN_FRT == "F10451Y")
+#' r <- SiteMnt(perim)
+#' par(mar = c(0,0,0,0))
 #' plot(r, axes=F, box=F)
-#' plot(st_geometry(razel), add=T)
+#' plot(st_geometry(perim), add=T)
 #' }
 #'
 #' @author Bruciamacchie Max
@@ -25,16 +28,22 @@
 #' @export
 #'
 SiteMnt <- function(shp, buffer=50, zoom=14, epsg=NULL) {
-  if (is.numeric(buffer) & is.numeric(zoom)) {
-    shp <- st_buffer(shp, dist=buffer)
-    zoom = max(zoom, 9)
-    x <- get_elev_raster(as(shp, "Spatial"), z = zoom, src = "aws")
-    x <- crop(x, as(shp, "Spatial"))
-    if (!is.null(epsg)) {
-      x <- projectRaster(x, crs=CRS(paste0('+init=EPSG:',epsg)))
-    }
-    return(x)
-  } else {
-    print("buffer et zoom doivent être des entiers.")
+  if (!inherits(shp, "sf")) {
+    stop("Le périmètre en entrée doit être un objet sf.")
   }
+  if (!zoom %in% 1:14) {
+    stop("Le zoom est un entier compris entre 1 et 14.")
+  }
+  if (!is.numeric(buffer)) {
+    stop("Le buffer doit être un entier.")
+  }
+
+  shp <- st_buffer(shp, dist=buffer)
+  zoom = max(zoom, 9)
+  x <- get_elev_raster(as(shp, "Spatial"), z = zoom, src = "aws")
+  x <- crop(x, as(shp, "Spatial"))
+  if (!is.null(epsg)) {
+    x <- projectRaster(x, crs=CRS(paste0('+init=EPSG:',epsg)))
+  }
+  return(x)
 }

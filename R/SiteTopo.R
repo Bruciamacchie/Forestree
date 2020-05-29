@@ -30,8 +30,13 @@
 #' @export
 
 SiteTopo <- function(shp, r) {
-  if (is(shp, "sf") & is(r, "RasterLayer")){
-    crs(r) <- st_crs(shp)[[2]]
+  if (!inherits(shp, "sf")) {
+    stop("La fonction nécessite comme premier argument un objet sf")
+  }
+  if (!inherits(r, "RasterLayer")) {
+    stop("La fonction nécessite comme deuxième argument un RasterLayer")
+  }
+    # crs(r) <- st_crs(shp)[[2]]
     shp <- as(shp, 'Spatial')
     r1 <- crop(r, shp)
     r1 <- mask(r1, shp)
@@ -41,23 +46,23 @@ SiteTopo <- function(shp, r) {
     flowdir <- terrain(r1, opt='flowdir', unit='degrees')
     tab <- data.frame(Pente = values(pente)*100,
                       Exposition = values(expo),
-                      Ecoulement = values(flowdir))
+                      Ecoulement = values(flowdir)) %>%
+      filter(!is.nan(Pente) & !is.na(Pente))
     # ---------- Pente
     Pente <- tab %>%
-      filter(!is.na(Pente)) %>%
+      # filter(!is.na(Pente)) %>%
       mutate(ClassePente = floor(Pente/5+0.5)*5) %>%
       dplyr::select(ClassePente) %>%
       group_by(ClassePente) %>%
       summarise(Nb = n()) %>%
       mutate(Total = sum(Nb),
              Freq = Nb/Total)
-    RangePente = range()
-    ech <- floor((max(Pente$Pente)- min(Pente$Pente))/100)*10
 
     gPente <- ggplot(Pente, aes(x=ClassePente, y=Freq)) + geom_bar(stat='identity', fill='grey80') +
       theme_bw() + scale_y_continuous(labels = scales::percent) +
       labs(y="", x="Pente (%)")
     # ---------- Exposition
+    ech=10
     Exposition <- tab %>%
       filter(!is.na(Exposition)) %>%
       mutate(ClasseExpo = floor(Exposition/360*400/5+0.5)*5,
@@ -71,8 +76,9 @@ SiteTopo <- function(shp, r) {
       mutate(Total = sum(Nb),
              Freq = Nb/Total)
 
-    gExpoPente <- ggplot(data = Exposition, aes(x=ClasseExpo, y = Freq, fill=factor(ClassePente))) +
+    gExpoPente <- ggplot(data = Exposition, aes(x=ClasseExpo, y = Freq, fill=ClassePente)) +
       geom_bar(stat='identity') + coord_polar() +
+      scale_fill_gradient(low = "#CCFFFF",high = "#003366") +
       theme_bw() + labs(x="Exposition (gr)", fill="Pente (%)") +
       theme(axis.title.y=element_blank(),
             axis.text.y=element_blank(),
@@ -103,7 +109,6 @@ SiteTopo <- function(shp, r) {
     out <- list(gPente,gExpoPente,gEcoul)
     names(out) <- c("Pente","ExpoPente","Ecoul")
     return(out)
-  }
 }
 
 

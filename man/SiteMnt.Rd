@@ -22,10 +22,13 @@ Modèle numérique de terrain à partir du serveur AWS.
 \examples{
 \donttest{
 library(elevatr)
-data(razel)
-r <- SiteMnt(razel)
+library(raster)
+library(sf)
+perim <- FD \%>\% filter(IIDTN_FRT == "F10451Y")
+r <- SiteMnt(perim)
+par(mar = c(0,0,0,0))
 plot(r, axes=F, box=F)
-plot(st_geometry(razel), add=T)
+plot(st_geometry(perim), add=T)
 }
 
 }

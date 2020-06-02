@@ -14,9 +14,8 @@
 #' @import RCurl
 #' @import rlist
 #' @import tcltk
-#' @import dplyr
+#' @import tidyverse
 #' @import openxlsx
-#' @import stringr
 #'
 #' @examples
 #' \donttest{
@@ -35,7 +34,7 @@ CadHtml2csv <- function(enrg=FALSE){
   if(is.na(rep)) { # Si le répertoire est vide : Absence de traitement
     print("Traitement annulé")
   } else { # Si le répertoire est plein : Traitement en boucle
-    ListeFich <- list.files(rep, "*.html") # Création d'une liste de fichier .html
+    ListeFich <- list.files(rep, "*.htm") # Création d'une liste de fichier .html
 
     if(length(ListeFich > 0)){ # Si la liste contient au moins un fichiers
       print(paste0("Le dossier choisi contient ",length(ListeFich)," fichiers."))

@@ -58,11 +58,14 @@ library(Forestree, quietly = T)
 library(xtable)
 library(kableExtra, quietly = T)
 library(tcltk)
-library(openxlsx)
+library(readxl)
+library(sf)
+# library(openxlsx)
 library(tidyverse)
 library(Hmisc)
 library(ForestTools)
 library(PPtools)
+
 @
 
 \begin{document}
@@ -316,16 +319,28 @@ res$placettes  # placettes IFN
 
 \subsubsection{Cartographie des essences par sylvoécorégions}
 
-\subsubsection{Cartographie des essences par sylvoécorégions}
-La fonction fournit la répartition du volume d'une essence par classe de diamètre et par
-région. Les deux découpages par régions sont ceux des GRECO ou des types de climats.
+La fonction \texttt{\textbf{CarteEssenceSer}} renvoie une carte des sylvoécorégions avec un niveau de rouge proportionnel au volume bois fort tige de l'essence retenue. Elle rest construite en conservant toutes les placettes de l'IFN depuis 2005. Cela permet d'attester la présence de l'essence y compris dans des peuplements qui auraient fait l'objet d'une coupe quelques années auparavant. Les sylvoécorégions qui ne contiennent pas l'essence retenue sont en gris foncé. Les points bleus permettent de localiser les placettes IFN contenant l'essence retenue. Leur densité permet d'estimer la précision du volume.
+La fonction nécessite en entrée le code IFN de l'essence retenue. Par exemple le code "09" correspond au hêtre.
+<<CarteEssenceSer, fig.height=5, fig.pos='H', fig.cap="Localisation et importance en volume du hêtre - Source IFN">>=
+EssenceSer("09")
+@
+
+
+\subsubsection{Cartographie des essences par climat}
+La fonction \textbf{\texttt{EssenceClimat}} permet de visualiser l'importance en volume d'une ou plusieurs essences selon le découpage de la France métropolitaine en 8 grands types de climat. Elle s'appuie sur la base IFN. Par rapport à la fonction \texttt{\textbf{CarteEssenceSer}}, elle permet de visualiser une ou plusieurs essence également désignées par leur code IFN. Les volumes sont calculés sur les dernières années avec un laps de temps choisi par l'opérateur. Par défaut les calculs portent sur les 7 dernières années.
 
 <<eval=F>>=
-data(IFNarbres)
-data(IFNplacettes)
-data(ser)
-EvolEssence(ess="05", group="climat")
+library(sf)
+library(tidyverse)
+library(DataForet)
+library(Forestree)
+
+EssenceClimat(c("02","03","05","06"))
+EssenceClimat(c("09","61","62","52"))
+EssenceClimat("09")
+EssenceClimat(c("10","11"))
 @
+
 
 
 \section{Milieux}
@@ -340,7 +355,7 @@ ClimatOmbro(Temperature, Precipitation)
 @
 
 
-% La fonction \texttt{ClimatOmbroMF} permet également l'édition d'un diagramme ombrothermique mais cette fois-ci à partir d'un d'un tableau contenant les informations classiques de météoFrance : Station, Année, Mois, RR (Précipitations), TN (témpérature minimale) et TX (température maximale). Si le tableau en entrée contient plusieurs stations, une boîte de dialogue permet de n'en sélectionner qu'une.
+La fonction \texttt{ClimatOmbroMF} permet également l'édition d'un diagramme ombrothermique mais cette fois-ci à partir d'un d'un tableau contenant les informations classiques de météoFrance : Station, Année, Mois, RR (Précipitations), TN (témpérature minimale) et TX (température maximale). Si le tableau en entrée contient plusieurs stations, une boîte de dialogue permet de n'en sélectionner qu'une.
 
 <<eval=F>>=
 ##### Données
@@ -370,263 +385,251 @@ plot(st_geometry(razel), add=T)
 # writeRaster(rad, "Rad.tif", format="GTiff", overwrite=TRUE)
 @
 
-\subsubsection{EssenceClimat}
-La fonction \textbf{\texttt{EssenceClimat}} permet de visualiser l'importance en volume d'une ou plusieurs essences selon le découpage de la France métropolitaine en 8 grands types de climat. Elle s'appuie sur la base IFN. Elle a comme argument la ou les essences retenues avec leur code IFN, ainsi le laps de temps sur lequel est calculée la moyenne des volumes. Par défaut les calculs portent sur les 7 dernières années.
+
+
+
+\subsubsection{Course du soleil}
+La fonction \texttt{CourseSoleil} renvoie la hauteur du soleil exprimée en degré au premier jour du printemps (20 mars) et de l'été (20 juin). Elle peut être utilisée pour calculer des masques solaires.
+
+<<CourseSoleil, fig.height=3, fig.pos='H', fig.cap="Hauteur du soleil en dégré à l'équinoxe de printemps et au solstice d'été.">>=
+library(tidyverse)
+library(suncalc)
+
+res <- CourseSoleil(Lat = 50.1, Lon = 1.83)
+res$graph
+@
+
+
+\subsection{Recherche statuts de protection}
+La fonction \texttt{NetProtectData} recherche sur internet les statuts de protection applicables sur un territoire donné. La fonction nécessite en entrée un fichier géoréférencé des limites du territoire au format sf ou shp. Si le fichier en entrée est au format shp, la fonction le transforme au format sf.
+
+Le tableau n°\ref{Liens} fournit la liste des liens internet recherchés
+<<Liens, echo=F, results='asis', fig.pos="H", comment=F>>=
+file <- system.file("Liens.xlsx", package = "DataForet")
+liens <- read_excel(file, sheet="R") %>%
+  filter(Catégorie == "Protection") %>%
+  dplyr::select(Thème,Lien)
+
+# data(liens)
+print(xtable(liens, caption = "Statuts de protection : liens internet.",
+      digits=c(0,0,0),label = "Liens", caption.placement = "top"), include.rownames=F,
+      size="\\footnotesize")
+@
+
+La fonction \texttt{\textbf{ProtectDataCreate}} du package DataFoet va rechercher sur internet les fichiers géoréférencés des statuts de protection listés dans le tableau \ref{Liens} et les rassemble dans un objet sf. Puis la fonction \texttt{\textbf{ProtectDataUse}} fait une intersection avec les limites d'un territoire choisi et si le territoire est concerné par certains des statuts, renvoie une carte de localisation des statuts et les enregistre dans un format .shp.
+.
+<<eval=F, include=F>>=
+library(DataForet)
+library(PPtools)
+load("~/pCloud Sync/Packages/Forestree/StatutProtec.Rdata")
+data(FD, package = "PPtools")
+perim <- FD %>% filter(IIDTN_FRT =="F09844P")
+graph <- ProtectDataUse(Protect,perim, width=100)
+graph
+@
+
+\begin{figure}[H]
+\begin{center}
+ \includegraphics[width=10cm]{/Users/maxbruciamacchie/pCloud Sync/Packages/Forestree/vignettes/Images/Protect.pdf}
+\caption{\emph{Recherche des statuts de protection applicables sur un territoire donné. Cas de la forêt domaniale de Montmorency.}}
+\label{Protec}
+\end{center}
+\end{figure}
+
+
+\subsection{Géologie}
+
+\subsection{Topographie}
+
+\subsubsection{MNT}
+La topographie joue un rôle important dans la définition des stations et dans leur organisation spatiale. De nombreux indicateurs topographiques peuvent être calculés dès que l'on possède un modèle numérique de terrain. En France l'IGN met à disposition gratuitement un MNT à la résolution de 75 m. Il est possible, d'acheter auprès de l'IGN, des MNT à la résolution de 5 m. La NASA met à disposition des MNT (DEM en anglais) à la résolution de 30 m.\\
+Le package \texttt{elevatr} offre une alternative intéressante. Il permet de récupérer un MNT à partir d'une zone d'extension qui est calculée par le biais d'un périmètre fourni en entrée. Avant janvier 2018 la recherche de MNT pouvait être faite sur 2 sources. Depuis une seule source est disponible.
 
 <<eval=F>>=
+library(elevatr)
+library(raster)
+library(sf)
+perim <- FD %>% filter(IIDTN_FRT == "F10451Y")
+r <- SiteMnt(perim)
+par(mar = c(0,0,0,0))
+plot(r, axes=F, box=F)
+plot(st_geometry(perim), add=T)
+@
+
+La fonction \texttt{SiteMnt} est basée sur la fonction \texttt{get\_elev\_raster} du package \texttt{elevatr} qui donne accès sur des serveur AWS à des données d'atitude à l'échelle de la planète. La recherche nécessite en entrée le périmètre de la zone désirée ainsi que la résolution. Le paramètre zoom permet de choisir la résolution du raster en sortie. Ce doit être un entier. Sa valeur par défaut a été fixée à 14. Dans ce cas la résolution sera égale à environ 3,2 m. Si zoom est égal à 1 la résolution est de 7600 m, c'est pourquoi la fonction \texttt{SiteMnt} ramène automatiquement le zoom à 10 (résolution d'environ 51 m) si le zoom choisi par l'opérateur est inférieur à 10.\\
+
+La figure \ref{CompareMNT} permet de comparer le MNT de l'IGN vendu à une résolution de 5 m avec celui issu d'un serveur de MNT (serveur AWS) avec une résolution annoncée légèrement supérieure à 3 m. La forêt retenue pour cette comparaison est située sur la commune d'Allevard en Isère, avec des altitudes comprises entre 500 et 2700 m. Cette figure montre que la résolution réelle du serveur AWS est supérieure à 5m et que le mnt fourni par le serveur AWS a tendance à lisser le mnt réel. En utilisant les points géodésiques de l'IGN comme référence les écarts entre le mnt issu du serveur AWS et celui de l'IGN sont en moyenne comparable. Le principal intérêt du mnt issu du serveur AWS est que l'information est gratuite, disponible sur l'ensemble de la planète et de résolution largement suffisante pour de nombreux emplois en forêt.
+
+\begin{figure}[H]
+\begin{center}
+ \includegraphics[width=17cm]{/Users/maxbruciamacchie/pCloud Sync/Packages/Forestree/vignettes/Images/CompareMNT.png}
+\caption{\emph{Comparaison des résolutions entre le MNT de l'IGN (à droite) avec celui issu d'un serveur AWS (à gauche)}}
+\label{CompareMNT}
+\end{center}
+\end{figure}
+
+
+\subsubsection{Indicateurs dérivés du MNT}
+La fonction \texttt{SiteTopo} permet de calculer des indicateurs topographiques sur un périmètre donné. Elle renvoie trois indicateurs topographiques : pente, classes de pente par exposition et direction de la ligne de plus grande pente.
+<<eval=F>>=
+library(raster)
 library(sf)
 library(tidyverse)
-library(DataForet)
-library(Forestree)
+library(scales)
 
-EssenceClimat(c("02","03","05","06"))
-EssenceClimat(c("09","61","62","52"))
-EssenceClimat("09")
-EssenceClimat(c("10","11"))
+res <- SiteTopo(perim, r)
+res$Pente
+res$ExpoPente
+res$Ecoul
+@
+
+\begin{figure}[H]
+\begin{center}
+ \includegraphics[width=15cm]{/Users/maxbruciamacchie/pCloud Sync/Packages/Forestree/Vignettes/Images/ClassePente.pdf}
+\caption{\emph{Exemple de répartition des pentes par exposition.}}
+\label{ClassePente}
+\end{center}
+\end{figure}
+
+\subsubsection{Fonction Countour2Line}
+La fonction \texttt{Contour2Line} permet de représenter un raster sous forme de courbes égales valeurs. Dans le cas de la figure ref{ClassePente} il s'agit de courbes d'altitudes. Une de ces courbes peut correspondre à une limite d'étage géologique.
+<<Countour2Line, eval=F>>=
+library(sf, quietly =T, warn.conflicts =F)
+library(Forestree)
+data(razel)
+mnt = SiteMnt(razel)
+res <- Contour2Line(razel, mnt, valline="430")
+courbes <- res$courbes
+Ligne <- res$ligne
+
+plot(st_geometry(razel))
+plot(st_geometry(courbes), add=T, col='orange', lwd=0.5)
+plot(st_geometry(Ligne), add=T, col='red')
+@
+
+\begin{figure}[H]
+\begin{center}
+ \includegraphics[width=15cm]{/Users/maxbruciamacchie/pCloud Sync/Packages/Forestree/Vignettes/Images/Courbes.pdf}
+\caption{\emph{Transformation d'un raster en courbes de niveau.}}
+\label{ClassePente}
+\end{center}
+\end{figure}
+
+
+\section{Gestion du foncier}
+
+\subsection{Conversion de matrices cadatrales en fichier Excel}
+La fonction \texttt{CadHtml2csv} permet la lecture de matrices cadastrales au format html contenues dans un dossier et renvoie un tableau contenant les informations suivantes : code et nom de la commune, nom et coordonnées du ou des propriétaires, identifiants des parcelles cadastrales, occupation du sol, revenu et surface cadastrals. Ces informations sont réparties dans les colonnes suivantes : COM\_CODE, COM\_NOM, PROP, ADRESSE, IDU, PREFIXE, SECTION, N\_PARCA, LIEUDIT, OCCUP\_SOL, REV\_CA, SURF\_CA.
+
+<<eval=F>>=
+tab <- CadHtml2csv(enrg=TRUE)
+@
+
+\subsection{Extraction des parcelles cadastrales}
+La fonction \texttt{CadPar} sélectionne dans un fichier .shp les parcelles cadastrales figurant dans des extraits de matrice cadastrale d'un ou de plusieurs propriétaires. Elle nécessite deux informations : \\
+- un tableau contenant la liste des parcelles cadastrales de la propriété. Il doit contenir une colonne nommée "idu" ou "IDU" ;\\
+- un fichier géoréférencé des parcelles cadastrales. Sa table attributaire doit contenir une colonne nommée "idu" ou "IDU".
+<<CadParEx, fig.height=4, fig.pos="H", fig.cap="Exemple de visualisation des parcelles cadastrales d'une propriété.">>=
+data("MatriceCad")
+data("Parcellaire")
+cadastre <- CadPar(MatriceCad, Parcellaire)
+par(mar=c(0,0,0,0))
+plot(st_geometry(Parcellaire), border='blue', lwd=0.5)
+plot(st_geometry(cadastre), border='red', add=T, lwd=1.5)
+@
+
+\subsection{Correspondance parcellaire forestier et cadastral}
+
+\subsubsection{La fonction CadCorFor}
+La fonction \texttt{CadCorFor} recherche la correspondance entre parcellaire forestier et cadastral. Elle fait en sorte que la somme des surfaces des parcelles forestières soit égale à la surface officielle cadastrale. Cette recherche est faite en évitant de trop aggréger les parcelles. Elle calcule un coefficient par parcelle permettant de passer de la surface SIG à la surface cadastrale.\\
+
+La fonction nécessite en entrée 2 fichiers géoréférencés au format sf : parcellaire cadastral et forestier. Si les fichiers en entrée sont au format shp, la fonction \texttt{st\_as\_sf} permet de les transformer au format sf (voir exemple ci-après).\\
+
+La table attributaire du parcellaire cadastral doit contenir au moins les champs suivants : Commune, Section, Num et Surface. Si la table attributaire du parcellaire forestier contient plusieurs colonnes, une boîte de dialogue permet de choisir le champ qui correspond au numéro de parcelle forestière.\\
+
+<<CadCorFor1, message=F>>=
+library(sf)
+library(Forestree)
+@
+
+\textbf{Données initiales}\\
+Dans la figure \ref{fig:CadCorFor2} les parcelles forestières sont en bleu, les parcelles cadastrales en rouge.\\
+
+<<CadCorFor2, warning=F, comment=F, error=F, fig.height=4, fig.cap="Parcellaire cadastral (rouge) et forestier (bleu).">>=
+##### Données
+data("parCadast")
+data("parFor")
+##### Conversion du format shp au format sf
+parCadast <- st_as_sf(parCadast)
+parFor <- st_as_sf(parFor)
+##### Visualisation
+par(mar=c(0,0,0,0))
+plot(st_geometry(parFor), lwd=2.5, border='blue')
+plot(st_geometry(parCadast), add=TRUE, border='red')
+@
+
+\textbf{Utilisation de la fonction}
+<<CadCorFor3, results='hide'>>=
+res <- CadCorFor(parCadast, parFor)
+@
+
+\textbf{Table de correspondance}\\
+Le tableau n°\ref{CadCorForTab} fournit la correspondance entre parcelles cadastrales et forestières.\\
+<<ResultTab, echo=F, results='asis', fig.pos="H", comment=F>>=
+print(xtable(res$Correspondance, caption = "Table de correspondance entre parcelles cadastrales et forestières.",
+      digits=c(rep(0,5)),label = "CadCorForTab", caption.placement = "top"), include.rownames=F,
+      size="\\footnotesize")
+@
+
+\textbf{Surface}\\
+Le tableau n°\ref{CadCorForSurf} fournit la surface cadastrale des parcelles forestières.
+<<ResultSurf, echo=F, results='asis', fig.pos="H", comment=F>>=
+print(xtable(res$Surfaces, caption = "Surface cadastrale des parcelles forestières.",
+      digits=c(0,0,4),label = "CadCorForSurf", caption.placement = "top"), include.rownames=F,
+      size="\\footnotesize", table.placement='H')
 @
 
 
 
 
-% \subsubsection{Course du soleil}
-% La fonction \texttt{CourseSoleil} renvoie la hauteur du soleil exprimée en degré au premier jour du printemps (20 mars) et de l'été (20 juin). Elle peut être utilisée pour calculer des masques solaires.
-%
-% <<CourseSoleil, fig.height=3, fig.pos='H', fig.cap="Hauteur du soleil en dégré à l'équinoxe de printemps et au solstice d'été.">>=
-% library(tidyverse)
-% library(suncalc)
-%
-% res <- CourseSoleil(Lat = 50.1, Lon = 1.83)
-% res$graph
-% @
-%
-%
-% \subsection{Recherche statuts de protection}
-% La fonction \texttt{NetProtectData} recherche sur internet les statuts de protection applicables sur un territoire donné. La fonction nécessite en entrée un fichier géoréférencé des limites du territoire au format sf ou shp. Si le fichier en entrée est au format shp, la fonction le transforme au format sf.
-%
-% Le tableau n°\ref{Liens} fournit la liste des liens internet recherchés
-% <<Liens, echo=F, results='asis', fig.pos="H", comment=F>>=
-% data(liens)
-% print(xtable(liens, caption = "Statuts de protection : liens internet.",
-%       digits=c(0,0,0),label = "Liens", caption.placement = "top"), include.rownames=F,
-%       size="\\footnotesize")
-% @
-%
-% La fonction \texttt{NetProtectData} va rechercher sur internet les fichiers géoréférencés des statuts de protection listés dans le tableau \ref{Liens}, fait une intersection avec les limites du territoire choisi et si le territoire est concerné par certains des statuts, crée un dossier dénommé StatutProtect contenant les shapes des intersections avec un buffer paramètrable (paramètre \texttt{width} de la fonction).
-% <<eval=F, include=F>>=
-% data(perim)
-% NetProtectData(perim, width=500)
-% @
-%
-% \begin{figure}[H]
-% \begin{center}
-%  \includegraphics[width=10cm]{/Users/maxbruciamacchie/Dropbox/Packages/Forestree/Vignettes/Images/Protect.png}
-% \caption{\emph{Résultat de la recherche des statuts de protection applicables sur un territoire donné.}}
-% \label{Protec}
-% \end{center}
-% \end{figure}
-%
-%
-% % \subsection{Géologie}
-%
-% \subsection{Topographie}
-%
-% \subsubsection{MNT}
-% La topographie joue un rôle important dans la définition des stations et dans leur organisation spatiale. De nombreux indicateurs topographiques peuvent être calculés dès que l'on possède un modèle numérique de terrain. En France l'IGN met à disposition gratuitement un MNT à la résolution de 75 m. Il est possible, d'acheter auprès de l'IGN, des MNT au pas de 5 m. La NASA met à disposition des MNT (DEM en anglais) à la résolution de 30 m.\\
-% Le package \texttt{elevatr} offre une alternative intéressante. Il permet de récupérer un MNT à partir d'une zone d'extension qui est calculée par le biais d'un polygone fourni en entrée. Avant janvier 2018 la recherche de MNT pouvait être faite sur 2 sources. Depuis une seule source est disponible, l'Amazon Web Services (aws).
-%
-% <<eval=F>>=
-% library(elevatr)
-% data(razel)
-% # perim = st_read(dsn="/Users/bruciamacchiemax/Dropbox/Projets PSG/2018",
-% #                 layer="Perim_Veyton")
-% # r <- SiteMnt(perim)
-% r <- SiteMnt(razel)
-% par(mar=c(0,0,0,0))
-% plot(r, axes=F, box=F)
-% # plot(st_geometry(razel), add=T)
-% plot(st_geometry(razel), add=T)
-% @
-%
-% La fonction \texttt{SiteMnt} est basée sur la fonction \texttt{get\_elev\_raster} du package \texttt{elevatr} qui va rechercher sur le serveur de l'Amazon Web Services le raster correspondant à l'extension du spatialPolygon fourni en entrée. Le paramètre zoom doit être un entier. Il permet de choisir la résolution du raster en sortie. Sa valeur par défaut a été fixée à 14. Dans ce cas la résolution sera égale à environ 3,2 m. Si zoom est égal à 1 la résolution est de 7600 m, c'est pourquoi la fonction \texttt{SiteMnt} ramène automatiquement le zoom à 10 (résolution d'environ 51 m) si le zoom choisi par l'opérateur est inférieur à 10.\\
-%
-% La figure \ref{CompareMNT} permet de comparer le MNT de l'IGN vendu à une résolution de 5 m avec celui issu du serveur d'Amazon fourni avec une résolution annoncée légèrement supérieure à 3 m. La forêt retenue pour cette comparaison est située sur la commune d'Allevard en Isère, avec des altitudes comprises entre 500 et 2700 m. Cette figure montre que la résolution réelle d'Amazon est supérieure à 5m et que le mnt fourni par le serveur AWS a tendance à lisser le mnt réel. En utilisant les points géodésiques de l'IGN comme référence les écarts entre le mnt issu du serveur AWS et celui de l'IGN sont en moyenne comparable. Le principal intérêt du mnt issu du serveur AWS est que l'information est gratuite, disponible sur l'ensemble de la planète et de résolution largement suffisante pour de nombreux emplois en forêt.
-%
-% \begin{figure}[H]
-% \begin{center}
-%  \includegraphics[width=17cm]{/Users/maxbruciamacchie/Dropbox/Packages/Forestree/Vignettes/Images/CompareMNT.png}
-% \caption{\emph{Comparaison des résolutions entre le MNT de l'IGN (à droite) avec celui d'Amazon (à gauche)}}
-% \label{CompareMNT}
-% \end{center}
-% \end{figure}
-%
-%
-% \subsubsection{Indicateurs dérivés du MNT}
-% La fonction \texttt{SiteTopo} permet de calculer des indicateurs topographiques sur un périmètre donné. Elle renvoie trois indicateurs topographiques : pente, classes de pente par exposition et direction de la ligne de plus grande pente.
-% <<eval=F>>=
-% library(raster)
-% library(sf)
-% library(tidyverse)
-% library(scales)
-%
-% res <- SiteTopo(perim, mnt)
-% res$Pente
-% res$ExpoPente
-% res$Ecoul
-% @
-%
-% \begin{figure}[H]
-% \begin{center}
-%  \includegraphics[width=15cm]{/Users/maxbruciamacchie/Dropbox/Packages/Forestree/Vignettes/Images/ClassePente.pdf}
-% \caption{\emph{Exemple de répartition des pentes par exposition.}}
-% \label{ClassePente}
-% \end{center}
-% \end{figure}
-%
-% \subsubsection{Fonction Countour2Line}
-%
-% <<Countour2Line, eval=F>>=
-% library(sf, quietly =T, warn.conflicts =F)
-% library(Forestree)
-% data(razel)
-% mnt = SiteMnt(razel)
-% res <- Contour2Line(razel, mnt, valline="430")
-% courbes <- res$courbes
-% Ligne <- res$ligne
-%
-% plot(st_geometry(razel))
-% plot(st_geometry(courbes), add=T, col='orange', lwd=0.5)
-% plot(st_geometry(Ligne), add=T, col='red')
-% @
-%
-% \begin{figure}[H]
-% \begin{center}
-%  \includegraphics[width=15cm]{/Users/maxbruciamacchie/Dropbox/Packages/Forestree/Vignettes/Images/Courbes.pdf}
-% \caption{\emph{Transformation d'un raster en courbes de niveau.}}
-% \label{ClassePente}
-% \end{center}
-% \end{figure}
-%
-%
-% \section{Gestion du foncier}
-%
-% \subsection{Conversion de matrices cadatrales en fichier Excel}
-% La fonction \texttt{CadHtml2csv} permet la lecture de matrices cadastrales au format html contenues dans un dossier et renvoie un tableau contenant les informations suivantes : code et nom de la commune, nom et coordonnées du ou des propriétaires, identifiants des parcelles cadastrales, occupation du sol, revenu et surface cadastrals. Ces informations sont réparties dans les colonnes suivantes : COM\_CODE, COM\_NOM, PROP, ADRESSE, IDU, PREFIXE, SECTION, N\_PARCA, LIEUDIT, OCCUP\_SOL, REV\_CA, SURF\_CA.
-%
-% <<eval=F>>=
-% tab <- CadHtml2csv(enrg=TRUE)
-% @
-%
-% \subsection{Extraction des parcelles cadastrales}
-% La fonction \texttt{CadPar} sélectionne dans un fichier .shp les parcelles cadastrales figurant dans des extraits de matrice cadastrale d'un ou de plusieurs propriétaires. Elle nécessite deux informations : \\
-% - un tableau contenant la liste des parcelles cadastrales de la propriété. Il doit contenir une colonne nommée "idu" ou "IDU" ;\\
-% - un fichier géoréférencé des parcelles cadastrales. Sa table attributaire doit contenir une colonne nommée "idu" ou "IDU".
-% <<eval=F>>=
-% data("MatriceCad")
-% data("Parcellaire")
-% cadastre <- CadPar(MatriceCad, Parcellaire)
-% plot(st_geometry(cadastre), lwd=1.5, border='blue')
-% @
-%
-%
-% \subsection{Correspondance parcellaire forestier et cadastral}
-%
-% \subsubsection{La fonction CadCorFor}
-% La fonction \texttt{CadCorFor} recherche la correspondance entre parcellaire forestier et cadastral. Elle fait en sorte que la somme des surfaces des parcelles forestières soit égale à la surface officielle cadastrale. Cette recherche est faite en évitant de trop aggréger les parcelles. Elle calcule un coefficient par parcelle permettant de passer de la surface SIG à la surface cadastrale.\\
-%
-% La fonction nécessite en entrée 2 fichiers géoréférencés au format sf : parcellaire cadastral et forestier. Si les fichiers en entrée sont au format shp, la fonction \texttt{st\_as\_sf} permet de les transformer au format sf (voir exemple ci-après).\\
-%
-% La table attributaire du parcellaire cadastral doit contenir au moins les champs suivants : Commune, Section, Num et Surface. Si la table attributaire du parcellaire forestier contient plusieurs colonnes, une boîte de dialogue permet de choisir le champ qui correspond au numéro de parcelle forestière.\\
-%
-% <<CadCorFor1, message=F>>=
-% library(sf)
-% library(Forestree)
-% @
-%
-% \textbf{Données initiales}\\
-% Dans la figure \ref{fig:CadCorFor2} les parcelles forestières sont en bleu, les parcelles cadastrales en rouge.\\
-%
-% <<CadCorFor2, warning=F, comment=F, error=F, fig.height=4, fig.cap="Parcellaire cadastral et forestier.">>=
-% ##### Données
-% data("parCadast")
-% data("parFor")
-% ##### Conversion du format shp au format sf
-% parCadast <- st_as_sf(parCadast)
-% parFor <- st_as_sf(parFor)
-% ##### Visualisation
-% par(mar=c(0,0,0,0))
-% plot(st_geometry(parFor), lwd=2.5, border='blue')
-% plot(st_geometry(parCadast), add=TRUE, border='red')
-% @
-%
-% \textbf{Utilisation de la fonction}
-% <<CadCorFor3, results='hide'>>=
-% res <- CadCorFor(parCadast, parFor)
-% @
-%
-% \textbf{Table de correspondance}\\
-% Le tableau n°\ref{CadCorForTab} fournit la correspondance entre parcelles cadastrales et forestières.\\
-% <<ResultTab, echo=F, results='asis', fig.pos="H", comment=F>>=
-% print(xtable(res$Correspondance, caption = "Table de correspondance entre parcelles cadastrales et forestières.",
-%       digits=c(rep(0,5)),label = "CadCorForTab", caption.placement = "top"), include.rownames=F,
-%       size="\\footnotesize")
-% @
-%
-% \textbf{Surface}\\
-% Le tableau n°\ref{CadCorForSurf} fournit la surface cadastrale des parcelles forestières.
-% <<ResultSurf, echo=F, results='asis', fig.pos="H", comment=F>>=
-% print(xtable(res$Surfaces, caption = "Surface cadastrale des parcelles forestières.",
-%       digits=c(0,0,4),label = "CadCorForSurf", caption.placement = "top"), include.rownames=F,
-%       size="\\footnotesize", table.placement='H')
-% @
-%
-% \subsubsection{La fonction CadPar}
-% La fonction permet de produire un shapefile polygone contenant l'ensemble des parcelles cadastrales d'un ou plusieurs propriétaires. La fonction sélectionne dans un fichier .shp les parcelles cadastrales figurant dans des extraits de matrice cadastrale.
-% <<CadParEx, fig.height=4, fig.pos="H", fig.cap="Exemple de visualisation des parcelles cadastrales d'une propriété.">>=
-% data("MatriceCad")
-% data("Parcellaire")
-% shp <- CadPar(MatriceCad, Parcellaire)
-% par(mar=c(0,0,0,0))
-% plot(st_geometry(Parcellaire), border='blue', lwd=0.5)
-% plot(st_geometry(shp), border='red', add=T)
-% @
-%
-%
-%
-% \section{Données numériques}
-% De plus en plus d'organismes mettent à disposition des données numériques. C'est le cas par exemple de l'IGN, du muséum d'histoire naturelles. Les données les plus anciennes sont en général gratuites, les données plus récentes et plus précises étant payantes. Des régions ou des départements ont créés des coopératives de données pour faciliter leur mise à disposition. C'est le cas de la région Grand-Est par le biais de son service CIGAL.
-%
-% \subsection{Découpes territoriales de la France}
-%
-% \subsubsection{Régions naturelles}
-% La fonction \texttt{DecoupRN} met à disposition le découpage de la France en régions naturelles détaillées ou non par département, ainsi que le découpage en sylvoécorégions.
-% <<CompareRN, fig.height=4, fig.pos='H', fig.cap="Comparaison entre anciennes régions naturelles (en bleu) et nouvelles sylvoécorégions (en rouge).">>=
-% # anciennes régions naturelles
-% # rn <- DecoupRN(formatSf = F, dept = F)
-% # class(rn)
-% # Compare anciennes régions naturelles et sylvoécorégions
-% rn <- DecoupRN(formatSf = T, dept = F)
-% data(ser)
-% par(mar=c(0,0,0,0))
-% plot(st_geometry(rn), border='blue', lwd=0.5)
-% plot(st_geometry(ser), border='red', lwd=1.2, add=T)
-% @
-%
-% \subsection{MNS ou MNH}
-% \begin{minipage}{0.425\linewidth}
-% Certaines collectivités territoriales mettent à disposition des gestionnaires de l'espace des données du type Modèle Numérique de Surface (MNS) issues d'un traitement LIDAR ou photogrammétrique. A titre d'exemple la figure \ref{Cigal} fournit les informations nécessaires pour se connecter au serveur FTP du CIGAL\footnote{Créé à l'origine par la région Alsace, les deux départements et les trois principales communautés urbaines, le CIGAL rassemble et met à disposition des données numériques pour l'ensemble de la nouvelle région Grand-Est}. \\
-% Ayant récupéré le MNS auprès du CIGAL et à condition de posséder un Modèle Numérique de Terrain (MNT) suffisament précis (celui à une résolution de 5 convient parfaitement), il est possible de calculer par différence un Modèle Numérique de Hauteur (MNH = MNS - MNT). Ces modèles MNH peuvent être utilisé pour extrapoler des informations dendrométriques obtenues à partir d'inventaires en plein ou par placettes, aux espaces environnants (voir paragraphe \ref{ParaCarteGB}).
-%
-% \end{minipage}\hfill
-% \begin{minipage}{0.55\linewidth}
-% \begin{figure}[H]
-% \begin{center}
-%  \includegraphics[width=8cm]{/Users/maxbruciamacchie/Dropbox/Packages/Forestree/Vignettes/Images/Cigal.png}
-% \caption{\emph{Informations permettant de se connecter au serveur FTP du CIGAL.}}
-% \label{Cigal}
-% \end{center}
-% \end{figure}
-% \end{minipage}
-%
+\section{Données numériques}
+De plus en plus d'organismes mettent à disposition des données numériques. C'est le cas par exemple de l'IGN, du muséum d'histoire naturelles. Les données les plus anciennes sont en général gratuites, les données plus récentes et plus précises étant payantes. Des régions ou des départements ont créés des coopératives de données pour faciliter leur mise à disposition. C'est le cas de la région Grand-Est par le biais de son service CIGAL.
+
+\subsection{Découpes territoriales de la France}
+
+\subsubsection{Régions naturelles, sylvoégorégions, grecos, type de climat}
+Tous ces découpages du territoire national sont accessibles par le biais du package DataForet. La figure \ref{fig:CompareRN} permet de comparer le découpage de la France en régions naturelles (rouge) en sylvoécorégions (bleu) et greco (vert).
+<<CompareRN, fig.height=5, fig.pos='H', fig.cap="Comparaison entre anciennes régions naturelles (en bleu), nouvelles sylvoécorégions (en rouge) et greco (en vert).">>=
+library(DataForet)
+data(bioreg)
+data(ser)
+data(ser25)
+data(rnIFN)
+data(greco)
+data(TypoClimat)
+
+par(mar=c(0,0,0,0))
+plot(st_geometry(rnIFN), border='red', lwd=0.5)
+plot(st_geometry(ser25), border='blue', lwd=1, add=T)
+plot(st_geometry(greco), border='chartreuse4', lwd=1.5, add=T)
+@
+
+\subsection{MNS ou MNH}
+\begin{minipage}{0.425\linewidth}
+Certaines collectivités territoriales mettent à disposition des gestionnaires de l'espace des données du type Modèle Numérique de Surface (MNS) issues d'un traitement LIDAR ou photogrammétrique. A titre d'exemple la figure \ref{Cigal} fournit les informations nécessaires pour se connecter au serveur FTP du CIGAL\footnote{Créé à l'origine par la région Alsace, les deux départements et les trois principales communautés urbaines, le CIGAL rassemble et met à disposition des données numériques pour l'ensemble de la nouvelle région Grand-Est}. \\
+Ayant récupéré le MNS auprès du CIGAL et à condition de posséder un Modèle Numérique de Terrain (MNT) suffisament précis (celui à une résolution de 5 convient parfaitement), il est possible de calculer par différence un Modèle Numérique de Hauteur (MNH = MNS - MNT). Ces modèles MNH peuvent être utilisé pour extrapoler des informations dendrométriques obtenues à partir d'inventaires en plein ou par placettes, aux espaces environnants (voir paragraphe \ref{ParaCarteGB}).
+
+\end{minipage}\hfill
+\begin{minipage}{0.55\linewidth}
+\begin{figure}[H]
+\begin{center}
+ \includegraphics[width=8cm]{/Users/maxbruciamacchie/Dropbox/Packages/Forestree/Vignettes/Images/Cigal.png}
+\caption{\emph{Informations permettant de se connecter au serveur FTP du CIGAL.}}
+\label{Cigal}
+\end{center}
+\end{figure}
+\end{minipage}
+
 % \subsubsection{Harmonisation}\label{ParaHarmo}
 % Lorsque l'on souhaite utiliser ces données (MNS, MNT) qui se présentent génaralement sous forme de rasters, la première difficulté à surmonter est de les harmoniser car en général elles n'ont pas même résolution, point d'origine ou zone d'extension. C'est l'objectif de la fonction \texttt{HarmoniseRaster}.
 % <<eval=F>>=

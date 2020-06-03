@@ -10,8 +10,6 @@
 #' @param resout = résolution des deux rasters en sortie. Par défaut resout = 1m.
 #'
 #' @import tidyverse
-#' @import sp
-#' @import rgeos
 #' @import sf
 #' @import raster
 #'
@@ -25,14 +23,18 @@
 
 HarmoniseRaster <- function(r1, r2, resout = 1) {
   if (is(r1, "RasterLayer") & is(r2, "RasterLayer")) {
-    ech <- resout/res(r1)
-    print("Aggregation du premier raster")
-    r1 <- aggregate(r1, fact=ech, 'max')
-    crs(r1) <- CRS('+init=EPSG:2154')
-    crs(r2) <- CRS('+init=EPSG:2154')
-    print("Harmonisation")
+    print("Mise à la résolution de sortie du premier raster")
+    ech <- resout/res(r1)[1]
+    if (ech > 1) {
+      r1 <- aggregate(r1, fact=ech, 'max')
+    }
+    if(ech < 1){
+      r1 <- disaggregate(r1, fact=1/ech)
+    }
+    print("Harmonisation du second raster")
     r2 <- projectRaster(r2, r1)
-    s <- stack(r1,r2)
-    return(s)
+    out <- list(r1,r2)
+    return(out)
   } else {print("La fonction n'admet que des RasterLayers")}
 }
+

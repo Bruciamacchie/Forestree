@@ -7,8 +7,10 @@ library(tidyverse)
 ser <- st_read("/Users/maxbruciamacchie/Dropbox/Packages/CoursR/Data/ser100union.shp", quiet=T) %>%
   ms_simplify(keep = 0.05) %>%
   dplyr::select(geometry)
-devtools::use_data(ser, overwrite = TRUE)
 
+
+usethis::use_data(ser, overwrite = T)
+usethis::use_data(cad, overwrite = T)
 
 # ------ Correspondance cadastre -----------------
 rep <- "/Users/bruciamacchiemax/Desktop/Packages/ForestTools/Exemples"

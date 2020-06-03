@@ -18,7 +18,7 @@ Calcul du tableau permet d'exprimer des flux financiers en euros constants.
 \examples{
 library(Forestree)
 library(DataForet)
-data(PA)
+
 Coeft <- PouvoirAchat(2018)
 
 }

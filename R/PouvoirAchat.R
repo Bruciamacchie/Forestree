@@ -13,16 +13,16 @@
 #' @examples
 #' library(Forestree)
 #' library(DataForet)
-#' data(PA)
+#'
 #' Coeft <- PouvoirAchat(2018)
 #'
 #' @export
 
 PouvoirAchat <- function(an) {
   if (is.numeric(an) & an <= 2019 & an >=1950 ) {
-    data(PA)
+    data("INSEEpa")
     euro=6.55957
-    tab <- PA %>% filter(Année <= an)
+    tab <- INSEEpa %>% filter(Année <= an)
     valmax = tab$Infla[dim(tab)[1]]
     tab <- tab %>%
       mutate(Coefft=1,

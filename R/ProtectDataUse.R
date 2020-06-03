@@ -30,7 +30,7 @@
 #' load("~/pCloud Sync/Packages/Forestree/StatutProtec.Rdata")
 #' data(FD, package = "PPtools")
 #' perim <- FD %>% filter(IIDTN_FRT =="F09844P")
-#' graph <- ProtectDataUse(Protect,perim, width=100)
+#' graph <- ProtectDataUse(Protect, perim, width=100)
 #' graph
 #'
 #' @export

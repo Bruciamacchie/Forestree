@@ -41,8 +41,6 @@ library(ForestTools)
 ##### Données
 data("parCadast")
 data("parFor")
-parCadast <- st_as_sf(parCadast)
-parFor <- st_as_sf(parFor)
 ##### Visualisation
 par(mar=c(0,0,0,0))
 plot(st_geometry(parFor), lwd=2.5, border='blue')

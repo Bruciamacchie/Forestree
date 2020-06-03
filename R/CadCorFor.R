@@ -39,8 +39,6 @@
 #' ##### Données
 #' data("parCadast")
 #' data("parFor")
-#' parCadast <- st_as_sf(parCadast)
-#' parFor <- st_as_sf(parFor)
 #' ##### Visualisation
 #' par(mar=c(0,0,0,0))
 #' plot(st_geometry(parFor), lwd=2.5, border='blue')
@@ -100,8 +98,7 @@ CadCorFor <- function(shpCad, shpFor, nom="ParcellaireForestier") {
         shpFor <- shpFor %>%
           left_join(tab, by = "NumFor")
         shpFor$NumFor <- NULL
-        st_write(shpFor, dsn=".", layer=nom, driver="ESRI Shapefile",
-                 update=T, delete_layer=T, quiet =T)
+        st_write(shpFor, dsn=".", layer=nom, driver="ESRI Shapefile",delete_layer=T, quiet =T)
         print(paste("fichier enregistré sous le nom",nom, "dans le répertoire ",getwd()))
 
         Liste <- list(Corresp, tab)

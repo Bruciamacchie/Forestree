@@ -16,9 +16,11 @@
 #' @author Bruciamacchie Max
 #'
 #' @examples
-#' data(mns)
-#' data(mnt)
-#' s <- HarmoniseRaster(mns, mnt)
+#' file <- system.file("MNS.tif", package = "Forestree")
+#' mns <- raster(file)
+#' file <- system.file("MNT.tif", package = "Forestree")
+#' mnt <- raster(file)
+#' result <- HarmoniseRaster(mns, mnt, resout = 1)
 #' @export
 
 HarmoniseRaster <- function(r1, r2, resout = 1) {

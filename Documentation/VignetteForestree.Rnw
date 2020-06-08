@@ -416,7 +416,7 @@ print(xtable(liens, caption = "Statuts de protection : liens internet.",
       size="\\footnotesize")
 @
 
-La fonction \texttt{\textbf{ProtectDataCreate}} du package DataFoet va rechercher sur internet les fichiers géoréférencés des statuts de protection listés dans le tableau \ref{Liens} et les rassemble dans un objet sf. Puis la fonction \texttt{\textbf{ProtectDataUse}} fait une intersection avec les limites d'un territoire choisi et si le territoire est concerné par certains des statuts, renvoie une carte de localisation des statuts et les enregistre dans un format .shp.
+La fonction \texttt{\textbf{ProtectDataCreate}} du package DataForet va rechercher sur internet les fichiers géoréférencés des statuts de protection listés dans le tableau \ref{Liens} et les rassemble dans un objet sf. Puis la fonction \texttt{\textbf{ProtectDataUse}} fait une intersection avec les limites d'un territoire choisi et si le territoire est concerné par certains des statuts, renvoie une carte de localisation des statuts et les enregistre dans un format .shp.
 .
 <<eval=F, include=F>>=
 library(DataForet)
@@ -467,6 +467,32 @@ La figure \ref{CompareMNT} permet de comparer le MNT de l'IGN vendu à une réso
 \label{CompareMNT}
 \end{center}
 \end{figure}
+
+
+\subsubsection{package tanaka}
+Le package tanaka permet une vision 3D d'une variable. Pour la figure \ref{Tanaka} il s'agit de l'altitude.
+<<eval=F>>=
+library(tanaka)
+library(raster)
+data(FD, package = "PPtools")
+perim <- FD %>% filter(IIDTN_FRT == "F10451Y")
+r <- SiteMnt(perim)
+par(mar = c(0,0,0,0))
+bas = floor(r@data@min/10)*10
+haut = floor(r@data@max/10)*10
+n = (haut-bas)/10
+tanaka(r, mask = perim, nclass=n, breaks = seq(bas,haut,10),
+       light = "#CCFFCC", dark = "#CC9900", legend.pos="n")
+@
+
+\begin{figure}[H]
+\begin{center}
+ \includegraphics[width=14cm]{/Users/maxbruciamacchie/pCloud Sync/Packages/Forestree/vignettes/Images/Tanaka.pdf}
+\caption{\emph{Vision 3D de la FD de St-Gobain grâce au package tanaka.}}
+\label{Tanaka}
+\end{center}
+\end{figure}
+
 
 
 \subsubsection{Indicateurs dérivés du MNT}
@@ -559,9 +585,7 @@ Dans la figure \ref{fig:CadCorFor2} les parcelles forestières sont en bleu, les
 ##### Données
 data("parCadast")
 data("parFor")
-##### Conversion du format shp au format sf
-parCadast <- st_as_sf(parCadast)
-parFor <- st_as_sf(parFor)
+
 ##### Visualisation
 par(mar=c(0,0,0,0))
 plot(st_geometry(parFor), lwd=2.5, border='blue')
@@ -617,200 +641,203 @@ plot(st_geometry(greco), border='chartreuse4', lwd=1.5, add=T)
 \subsection{MNS ou MNH}
 \begin{minipage}{0.425\linewidth}
 Certaines collectivités territoriales mettent à disposition des gestionnaires de l'espace des données du type Modèle Numérique de Surface (MNS) issues d'un traitement LIDAR ou photogrammétrique. A titre d'exemple la figure \ref{Cigal} fournit les informations nécessaires pour se connecter au serveur FTP du CIGAL\footnote{Créé à l'origine par la région Alsace, les deux départements et les trois principales communautés urbaines, le CIGAL rassemble et met à disposition des données numériques pour l'ensemble de la nouvelle région Grand-Est}. \\
-Ayant récupéré le MNS auprès du CIGAL et à condition de posséder un Modèle Numérique de Terrain (MNT) suffisament précis (celui à une résolution de 5 convient parfaitement), il est possible de calculer par différence un Modèle Numérique de Hauteur (MNH = MNS - MNT). Ces modèles MNH peuvent être utilisé pour extrapoler des informations dendrométriques obtenues à partir d'inventaires en plein ou par placettes, aux espaces environnants (voir paragraphe \ref{ParaCarteGB}).
+Ayant récupéré le MNS auprès du CIGAL et à condition de posséder un Modèle Numérique de Terrain (MNT) suffisament précis (celui avec une résolution de 5 convient parfaitement), il est possible de calculer par différence un Modèle Numérique de Hauteur (MNH = MNS - MNT). Ces modèles MNH peuvent être utilisé pour extrapoler des informations dendrométriques obtenues à partir d'inventaires en plein ou par placettes, aux espaces environnants (voir paragraphe \ref{ParaCarteGB}).
 
 \end{minipage}\hfill
 \begin{minipage}{0.55\linewidth}
 \begin{figure}[H]
 \begin{center}
- \includegraphics[width=8cm]{/Users/maxbruciamacchie/Dropbox/Packages/Forestree/Vignettes/Images/Cigal.png}
+ \includegraphics[width=8cm]{/Users/maxbruciamacchie/pCloud Sync/Packages/Forestree/vignettes/Images/Cigal.png}
 \caption{\emph{Informations permettant de se connecter au serveur FTP du CIGAL.}}
 \label{Cigal}
 \end{center}
 \end{figure}
 \end{minipage}
 
-% \subsubsection{Harmonisation}\label{ParaHarmo}
-% Lorsque l'on souhaite utiliser ces données (MNS, MNT) qui se présentent génaralement sous forme de rasters, la première difficulté à surmonter est de les harmoniser car en général elles n'ont pas même résolution, point d'origine ou zone d'extension. C'est l'objectif de la fonction \texttt{HarmoniseRaster}.
-% <<eval=F>>=
-% data(mns)
-% data(mnt)
-% s <- HarmoniseRaster(mns, mnt)
-% names(s) <- c("MNS", "MNT")
-% # plot(s, axes=F, box=F)
-% @
-% La fonction \texttt{HarmoniseRaster} renvoie un objet de la classe "\texttt{RasterStack}".
-%
-% \subsubsection{Calcul du MNH}
-%
-% \begin{minipage}{0.55\linewidth}
-% Les MNS et MNT harmonisés grâce à la fonction \texttt{HarmoniseRaster} (voir paragraphe \ref{ParaHarmo}) permettent par simple différence de calculer des Modèles Numériques de Hauteur (MNH). \\
-%
-% A titre d'exemple, la figure \ref{MNH17} permet de visualiser le MNH du dispositif n°17 (Belval) de l'AFI. L'échelle à droite est celle des hauteurs.
-% <<eval=F>>=
-% mns <- s$MNS
-% mnt <- s$MNT
-% mnh <- mns - mnt
-% mnh[mnh<0] <- 0
-%
-% par(mar = rep(0.5, 4))
-% plot(mnh, axes=F, box=F)
-% plot(st_geometry(Parcelle), add=T)
-% @
-%
-% \end{minipage}\hfill
-% \begin{minipage}{0.425\linewidth}
-% \begin{figure}[H]
-% \begin{center}
-%  \includegraphics[width=6cm]{/Users/maxbruciamacchie/Dropbox/Packages/Forestree/Vignettes/Images/MNH17.png}
-% \caption{\emph{Modèle Numérique de Hauteurs (MNH) - dispositif AFI n°17 (Belval).}}
-% \label{MNH17}
-% \end{center}
-% \end{figure}
-% \end{minipage}
-%
-% \subsubsection{Détection des arbres}\label{Detect}
-% \begin{minipage}{0.525\linewidth}
-% Le package \texttt{ForestTools} contient des fonctions permettant d'automatiser la détection à partir de MNH d'arbres (\texttt{TreeTopFinder}) ou de houppiers (\texttt{SegmentCrowns}). La recherche d'arbres est basée sur la détection des apex (points hauts). \\
-% <<eval=F>>=
-% lin <- function(x){-3 + 0.2*x}
-% ttops <- vwf(CHM = mnh,
-%              winFun = lin,
-%              minHeight = 20,
-%              maxWinDiameter = 30)
-% crownsPoly <- mcws(treetops = ttops,
-%                    CHM = mnh,
-%                    format = "polygons",
-%                    minHeight = 20,
-%                    verbose = F)
-% par(mar = rep(0.5, 4))
-% plot(mnh, axes=F, box=F)
-% plot(st_geometry(Parcelle), add=T)
-% plot(crownsPoly, border = "blue", lwd = 0.2,
-%      add = TRUE)
-% plot(ttops, add=T, pch=19, col='blue',cex=0.2)
-% @
-% \end{minipage}\hfill
-% \begin{minipage}{0.45\linewidth}
-% \begin{figure}[H]
-% \begin{center}
-%  \includegraphics[width=6cm]{/Users/maxbruciamacchie/Dropbox/Packages/Forestree/Vignettes/Images/Houppier.png}
-% \caption{\emph{Détection automatique des houppiers des arbres pour le dispositif AFI n°17 (Belval).}}
-% \label{Houppier17}
-% \end{center}
-% \end{figure}
-% \end{minipage}
-%
-% A titre d'exemple, la figure \ref{Houppier17} illustre le résultat de la détection automatique des houppiers dans le cas du dispositif n°17 (Belval) de l'AFI. Dans le script ci-dessus la fonction \texttt{lin} définit le rayon minimum de recherche du prochain apex. Elle a été établie à partir des mesures de houppiers effectuées à l'AFI. Ne sont recherchés que les arbres dont la hauteur est supérieure au paramètre à 20 mètres (paramère \texttt{minHeight}), valeur seuil également définie à partir des mesures de l'AFI.
-%
-%
-% \subsubsection{Calibration}
-% La détection des arbres à partir de MNH présentée au paragraphe \ref{Detect} n'est souvent qu'une première étape en vue d'estimer la ressource en volume. Elle nécessite d'établir des relations d'estimation du volume d'un arbre à partir de la surface de son houppier et de sa hauteur. \\
-%
-% Une autre approche consiste à établir une relation entre la distribution locale des hauteurs et une variable dendrométrique. A titre d'exemple la variable à prédire sera la surface terrière des gros bois. Cette seconde approche ne nécessite pas l'étape de la détection des arbres et de leur houppier.\\
-%
-% \begin{minipage}{0.55\linewidth}
-% Un réseau de placettes permanentes va servir à calibrer une relation entre la distribution des hauteurs à partir du MNH, sur les cercles de 10m et de 30m, et la surface terrière des gros bois mesurée sur les placettes permanentes.
-% <<eval=F>>=
-% data(mnh)
-% data(Parcelle)
-% data(Placettes)
-% plot(mnh, axes=F, box=F)
-% plot(st_geometry(Parcelle), add=T)
-% plot(st_geometry(Placettes), add=T)
-% @
-% \end{minipage}\hfill
-% \begin{minipage}{0.45\linewidth}
-% \begin{figure}[H]
-% \begin{center}
-%  \includegraphics[width=6cm]{/Users/maxbruciamacchie/Dropbox/Packages/Forestree/Vignettes/Images/PlanPlacettes.png}
-% \caption{\emph{Localisation des placettes permanentes - dispositif AFI n°17 (Belval).}}
-% \label{Houppier17bis}
-% \end{center}
-% \end{figure}
-% \end{minipage}
-%
-%
-%
-%
-%
-% \subsubsection{Carte de la surface terrière de gros bois}\label{ParaCarteGB}
-% \begin{figure}[H]
-% \begin{center}
-%  \includegraphics[width=6cm]{/Users/maxbruciamacchie/Dropbox/Packages/Forestree/Vignettes/Images/GB.png}
-% \caption{\emph{Carte de la surface terrière de gros bois - dispositif AFI n°17 (Belval).}}
-% \label{GB17}
-% \end{center}
-% \end{figure}
-%
-%
-% \section{Estimation forestière}
-%
-% \subsection{Indicateurs économiques}
-%
-% \subsubsection{Pouvoir d'achat}
-%
-% <<eval=F>>=
-% library(Forestree)
-% library(dplyr)
-% Coeft <- PouvoirAchat(2018)
-% # ---- Exemple
-% Flux <- data.frame(Année = c(1995, 1999, 2003, 1995:2003),
-%                       Nature = c("Investissement", "Chasse", "Bois", rep("Frais fixe", 9)),
-%                       Montant = c(-15000, 6000, 7000, rep(-50, 9))) %>%
-%   arrange(Année) %>%
-%   left_join(Coeft, by = "Année") %>%
-%   mutate(MontantEuroCons = Montant * Coefft)
-% sum(Flux$MontantEuroCons)
-% @
-%
-% \subsubsection{Prix de vente des forêts}
-% Par décret n° 2018-1350 du 28 décembre 2018, le gouvernement français s'est engagé à mettre en open data les informations portant sur les valeurs foncières déclarées à l'occasion des mutations immobilières. La base de donnée DVF (demandes de valeurs foncières), publiée et produite par la direction générale des finances publiques est donc accessible sur le serveur \emph{data.gouv.fr}. En pratique les informations se présentent sous la forme d'un fichier par année. Une ligne de chaque fichier représente un bien (appartement, parcelle cadastrale, etc.) présent dans une transaction. Les fichiers font l’objet d’une mise à jour semestrielle, en avril et en octobre. Les deux départements d'Alsace ainsi que la Moselle ne figurent pas dans la base de données. \\
-%
-% La base de donnée DVF n'est pas facilement manipulable car très volumineuse et mal organisée. La fonction \texttt{ValeurVenale} en facilite l'exploration. Elle ne retient que les ventes qui ne concernent que des parcelles cadastrales boisées (pas de bâti, de champ, etc.). Les DOM-TOM ont été volontairement retirés de l'analyse. \\
-%
-% Le script ci-après fournit un exemple d'utilisation. La figure \ref{fig:Valeurs} présente une des sorties possibles. Elle doit être interprétée en sachant que la nature de bois indiqué par le cadastre peut être assez éloignée de la réalité. Malgré cette réserve La figure \ref{fig:Valeurs}
-% <<eval=F>>=
-% library(tidyverse)
-%
-% Evol <- data.frame()
-% Detail <- data.frame()
-% for (i in c(2018:2016)) {
-%   res  <- ValeurVenale(i)
-%   Evol <- rbind(Evol, as.data.frame(res$tab))
-%   Detail <- rbind(Detail, as.data.frame(res$Detail))
-% }
-%
-% textes <- Evol %>% filter(Année == 2018)
-% ggplot(Evol, aes(x=Nature, y=Prix, color=factor(Année))) +
-%   geom_point() + geom_text(data=textes, aes(label=round(Prix,0)), size=4, hjust=1.2) +
-%   theme_bw() + labs(color="")
-%
-% ggplot(Detail, aes(x=Nature, y=Prix, fill=factor(Année), color=factor(Année))) +
-% geom_point(position = position_jitterdodge()) +
-%   geom_boxplot(alpha=0.4) +
-%   geom_text(data=textes, aes(label=round(Prix,0)), size=3, hjust=-1.5) +
-%   theme_bw() + labs(fill="", color="", y="Prix (euro/ha)")
-% @
-%
-% \begin{figure}[H]
-% \begin{center}
-%  \includegraphics[width=17cm]{/Users/maxbruciamacchie/Dropbox/Packages/Forestree/Vignettes/Images/Valeurs.pdf}
-% \caption{\emph{Valeurs des forêts selon leur nature (codification cadastrale)}}
-% \label{Valeurs}
-% \end{center}
-% \end{figure}
-%
-%
-% \subsubsection{taux interne de rentabilité}
-% <<eval=F>>=
-% df <- data.frame(Année = c(2, 4, 6, 30),
-%                  Montant = c(-0.6, -0.9, -1.5, 9))
-% EcoTIR(df$Année, df$Montant)
-% @
-%
-% \subsection{Rentabilité de projets}
-%
-% \section{Gestion des risques}
+\subsubsection{Harmonisation}\label{ParaHarmo}
+Lorsque l'on souhaite utiliser ces données (MNS, MNT) qui se présentent génaralement sous forme de rasters, la première difficulté à surmonter est de les harmoniser car en général elles n'ont pas même résolution, point d'origine ou zone d'extension. C'est l'objectif de la fonction \texttt{HarmoniseRaster}.
+<<eval=F>>=
+file <- system.file("MNS.tif", package = "Forestree")
+mns <- raster(file)
+file <- system.file("MNT.tif", package = "Forestree")
+mnt <- raster(file)
+
+result <- HarmoniseRaster(mns, mnt, resout = 1)
+@
+Dans la fonction \texttt{HarmoniseRaster} le pemier raster sert de référence (origine et zone d'extension). Il est possible de modifier sa résolution. Ces 3 paramètres seront utilisés pour modifier le deuxième raster. La fonction renvoie une liste contenant les 2 rasters. Ils peuvent alors être manipulés.
+dans l'exemple fourni, le modèle numérique de hauteur (mnh) parfois appelé modèle numérique d'élévation (mne) s'obtient par simple différence entre le mns et le mnt.
+
+
+
+
+\subsubsection{Calcul du MNH}
+
+\begin{minipage}{0.45\linewidth}
+Les MNS et MNT harmonisés grâce à la fonction \texttt{HarmoniseRaster} (voir paragraphe \ref{ParaHarmo}) permettent par simple différence de calculer des Modèles Numériques de Hauteur (MNH). Dans la figure \ref{MNH} l'échelle à droite est celle des hauteurs.
+<<eval=F>>=
+mns <- result[[1]]
+mnt <- result[[2]]
+mnh <- mns-mnt
+mnh[mnh<0] <- 0
+
+par(mar = rep(0.5, 4))
+data(cad)
+plot(mnh, axes=F, box=F)
+plot(st_geometry(cad), add=T)
+@
+
+\end{minipage}\hfill
+\begin{minipage}{0.525\linewidth}
+\begin{figure}[H]
+\begin{center}
+ \includegraphics[width=8cm]{/Users/maxbruciamacchie/pCloud Sync/Packages/Forestree/Vignettes/Images/MNH.png}
+\caption{\emph{Modèle Numérique de Hauteur (MNH)}}
+\label{MNH}
+\end{center}
+\end{figure}
+\end{minipage}
+
+\subsubsection{Détection des arbres}\label{Detect}
+\begin{minipage}{0.45\linewidth}
+Il existe de nombreux packages conçus pour traiter des données obtenues avec un lidar ou par photogrammétrie : LidR, rLiDAR, lidaRtRee, ...
+
+Le package \texttt{ForestTools} est suffisant pour une première approche. Il contient des fonctions permettant d'automatiser la détection à partir de MNH d'arbres (\texttt{TreeTopFinder}) ou de houppiers (\texttt{SegmentCrowns}). La recherche d'arbres est basée sur la détection des apex (points hauts). \\
+
+<<eval=F>>=
+library(ForestTools)
+lin <- function(x){-3 + 0.2*x}
+ttops <- vwf(CHM = mnh,
+             winFun = lin,
+             minHeight = 20,
+             maxWinDiameter = 30)
+crownsPoly <- mcws(treetops = ttops,
+                   CHM = mnh,
+                   format = "polygons",
+                   minHeight = 20,
+                   verbose = F)
+par(mar = rep(0.5, 4))
+data(cad)
+plot(mnh, axes=F, box=F)
+plot(st_geometry(cad), add=T)
+plot(crownsPoly, border = "blue", lwd = 0.2,add = TRUE)
+@
+\end{minipage}\hfill
+\begin{minipage}{0.525\linewidth}
+\begin{figure}[H]
+\begin{center}
+ \includegraphics[width=8cm]{/Users/maxbruciamacchie/pCloud Sync/Packages/Forestree/Vignettes/Images/Houppier.png}
+\caption{\emph{Détection automatique des houppiers des arbres.}}
+\label{Houppier}
+\end{center}
+\end{figure}
+\end{minipage}
+
+A titre d'exemple, la figure \ref{Houppier} illustre le résultat de la détection automatique des houppiers à partir du MNH calculé à l'étape précédente (voir figure \ref{MNH}). Dans le script ci-dessus la fonction \texttt{lin} définit le rayon minimum de recherche du prochain apex. Elle a été établie à partir des mesures de houppiers effectuées à l'AFI. Ne sont recherchés que les arbres dont la hauteur est supérieure au paramètre à 20 mètres (paramètre \texttt{minHeight}), valeur seuil également définie à partir des mesures de l'AFI.
+
+
+\subsubsection{Calibration}
+La détection des arbres à partir de MNH présentée au paragraphe \ref{Detect} n'est souvent qu'une première étape en vue d'estimer la ressource en volume. Elle nécessite d'établir des relations d'estimation du volume d'un arbre à partir de la surface de son houppier et de sa hauteur. \\
+
+Une autre approche consiste à établir une relation entre la distribution locale des hauteurs et une variable dendrométrique. A titre d'exemple la variable à prédire sera la surface terrière des gros bois. Cette seconde approche ne nécessite pas l'étape de la détection des arbres et de leur houppier.\\
+
+\begin{minipage}{0.55\linewidth}
+Un réseau de placettes permanentes va servir à calibrer une relation entre la distribution des hauteurs à partir du MNH, sur les cercles de 10m et de 30m, et la surface terrière des gros bois mesurée sur les placettes permanentes.
+<<eval=F>>=
+data(mnh)
+data(Parcelle)
+data(Placettes)
+plot(mnh, axes=F, box=F)
+plot(st_geometry(Parcelle), add=T)
+plot(st_geometry(Placettes), add=T)
+@
+\end{minipage}\hfill
+\begin{minipage}{0.45\linewidth}
+\begin{figure}[H]
+\begin{center}
+ \includegraphics[width=6cm]{/Users/maxbruciamacchie/pCloud Sync/Packages/Forestree/Vignettes/Images/PlanPlacettes.png}
+\caption{\emph{Localisation des placettes permanentes - dispositif AFI n°17 (Belval).}}
+\label{Houppier17bis}
+\end{center}
+\end{figure}
+\end{minipage}
+
+
+\subsubsection{Carte de la surface terrière de gros bois}\label{ParaCarteGB}
+\begin{figure}[H]
+\begin{center}
+ \includegraphics[width=6cm]{/Users/maxbruciamacchie/pCloud Sync/Packages/Forestree/Vignettes/Images/GB.png}
+\caption{\emph{Carte de la surface terrière de gros bois - dispositif AFI n°17 (Belval).}}
+\label{GB17}
+\end{center}
+\end{figure}
+
+
+\section{Estimation forestière}
+
+\subsection{Indicateurs économiques}
+
+\subsubsection{Pouvoir d'achat}
+
+<<eval=F>>=
+library(DataForet)
+Coeft <- PouvoirAchat(2018)
+# ---- Exemple
+Flux <- data.frame(Année = c(1995, 1999, 2003, 1995:2003),
+                      Nature = c("Investissement", "Chasse", "Bois", rep("Frais fixe", 9)),
+                      Montant = c(-15000, 6000, 7000, rep(-50, 9))) %>%
+  arrange(Année) %>%
+  left_join(Coeft, by = "Année") %>%
+  mutate(MontantEuroCons = Montant * Coefft)
+sum(Flux$MontantEuroCons)
+@
+
+\subsubsection{Prix de vente des forêts}
+Par décret n° 2018-1350 du 28 décembre 2018, le gouvernement français s'est engagé à mettre en open data les informations portant sur les valeurs foncières déclarées à l'occasion des mutations immobilières. La base de donnée DVF (demandes de valeurs foncières), publiée et produite par la direction générale des finances publiques est donc accessible sur le serveur \emph{data.gouv.fr}. En pratique les informations se présentent sous la forme d'un fichier par année. Une ligne de chaque fichier représente un bien (appartement, parcelle cadastrale, etc.) présent dans une transaction. Les fichiers font l’objet d’une mise à jour semestrielle, en avril et en octobre. Les deux départements d'Alsace ainsi que la Moselle ne figurent pas dans la base de données. \\
+
+La base de donnée DVF n'est pas facilement manipulable car très volumineuse et mal organisée. La fonction \texttt{ValeurVenale} en facilite l'exploration. Elle ne retient que les ventes qui ne concernent que des parcelles cadastrales boisées (pas de bâti, de champ, etc.). Les DOM-TOM ont été volontairement retirés de l'analyse. \\
+
+Le script ci-après fournit un exemple d'utilisation. La figure \ref{fig:Valeurs} présente une des sorties possibles. Elle doit être interprétée en sachant que la nature de bois indiqué par le cadastre peut être assez éloignée de la réalité. Malgré cette réserve La figure \ref{fig:Valeurs}
+<<eval=F>>=
+library(tidyverse)
+
+Evol <- data.frame()
+Detail <- data.frame()
+for (i in c(2018:2016)) {
+  res  <- ValeurVenale(i)
+  Evol <- rbind(Evol, as.data.frame(res$tab))
+  Detail <- rbind(Detail, as.data.frame(res$Detail))
+}
+
+textes <- Evol %>% filter(Année == 2018)
+ggplot(Evol, aes(x=Nature, y=Prix, color=factor(Année))) +
+  geom_point() + geom_text(data=textes, aes(label=round(Prix,0)), size=4, hjust=1.2) +
+  theme_bw() + labs(color="")
+
+ggplot(Detail, aes(x=Nature, y=Prix, fill=factor(Année), color=factor(Année))) +
+geom_point(position = position_jitterdodge()) +
+  geom_boxplot(alpha=0.4) +
+  geom_text(data=textes, aes(label=round(Prix,0)), size=3, hjust=-1.5) +
+  theme_bw() + labs(fill="", color="", y="Prix (euro/ha)")
+@
+
+\begin{figure}[H]
+\begin{center}
+ \includegraphics[width=17cm]{/Users/maxbruciamacchie/pCloud Sync/Packages/Forestree/Vignettes/Images/Valeurs.pdf}
+\caption{\emph{Valeurs des forêts selon leur nature (codification cadastrale)}}
+\label{Valeurs}
+\end{center}
+\end{figure}
+
+
+\subsubsection{taux interne de rentabilité}
+<<eval=F>>=
+df <- data.frame(Année = c(2, 4, 6, 30),
+                 Montant = c(-0.6, -0.9, -1.5, 9))
+EcoTIR(df$Année, df$Montant)
+@
+
+\subsection{Rentabilité de projets}
+
+\section{Gestion des risques}
 
 \end{document}

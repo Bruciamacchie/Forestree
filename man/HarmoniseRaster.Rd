@@ -21,9 +21,11 @@ La fonction harmonise le deuxième raster de sorte qu'il ait même résolution, 
 et extension que le premier.
 }
 \examples{
-data(mns)
-data(mnt)
-s <- HarmoniseRaster(mns, mnt)
+file <- system.file("MNS.tif", package = "Forestree")
+mns <- raster(file)
+file <- system.file("MNT.tif", package = "Forestree")
+mnt <- raster(file)
+result <- HarmoniseRaster(mns, mnt, resout = 1)
 }
 \author{
 Bruciamacchie Max

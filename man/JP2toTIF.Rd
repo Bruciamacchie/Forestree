@@ -7,7 +7,7 @@
 JP2toTIF()
 }
 \description{
-Cette fonction convertit tous les fichiers au format JP2 contenus dans un dossier en format <<tif.
+Cette fonction convertit tous les fichiers au format JP2 contenus dans un dossier en format .tif.
 }
 \examples{
 JP2toTIF()

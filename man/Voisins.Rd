@@ -10,7 +10,7 @@ Voisins(shp)
 \item{shp}{couche géoréférencée contenant des POLYGON ou MULTIPOLYGON.}
 }
 \value{
-La fonction renvoie l'objet sf fournit en entrée avec deux géométries supplémentaires,
+La fonction renvoie l'objet sf fourni en entrée avec deux géométries supplémentaires,
 l'une correspondant pour chaque polygone à l'union des voisins (geom2),
 l'autre à l'union du polygone avec ses voisins (geom1).
 }

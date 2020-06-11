@@ -1,6 +1,6 @@
 #' Conversion JP2 to TIF
 #'
-#' @description Cette fonction convertit tous les fichiers au format JP2 contenus dans un dossier en format <<tif.
+#' @description Cette fonction convertit tous les fichiers au format JP2 contenus dans un dossier en format .tif.
 #'
 #' @import tcltk
 #' @import gdalUtils

@@ -628,6 +628,14 @@ JP2 est un format d'image de plus en plus utilisé (c'est le cas de l'IGN) car i
 JP2toTIF()
 @
 
+\subsubsection{Mosaic}
+La fonction Mosaic assemble tous les rasters au format TIF ou ASC contenus dans un dossier en un seul fichier au format TIF. Attention si les différents rasters se supperposent il erst préférable d'utiliser la fonction merge.
+<<eval=F>>=
+Mosaic()
+@
+
+
+
 \subsection{Outils vecteur}
 
 \subsubsection{Recherche voisins}

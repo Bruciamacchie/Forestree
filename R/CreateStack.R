@@ -11,7 +11,7 @@
 #' @param noms Noms des rasters à utiliser.
 #' @param shp1 Zone d'étude au format.shp, les rasters seront découpés selon cette zone détude
 #'elle doit donc être plus petite que les rasters.
-#' @param shp2 Ppartie à exclure de la zone d'étude, par défaut shp2 = NULL.
+#' @param shp2 Partie à exclure de la zone d'étude, par défaut shp2 = NULL.
 #'
 #' @return La fonction renvoie une pile de raster sous forme d'objet stack.
 #'
@@ -26,7 +26,7 @@ CreateStack <- function(listeRaster, noms, shp1, shp2 = NULL) {
   # par convention le premier sert de modèle
   for (i in 2:length(rlist)) {
     rlist[[i]] <- projectRaster(rlist[[i]],rlist[[1]])
-    print(paste("harmonisation du raster :", CriteresNom [i]))
+    print(paste("harmonisation du raster :", noms[i]))
   }
 
   s <- stack(rlist) %>% mask(shp1)  #raster multicouche

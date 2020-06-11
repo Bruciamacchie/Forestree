@@ -635,13 +635,18 @@ Dans la fonction \texttt{HarmoniseRaster} le pemier raster sert de référence (
 dans l'exemple fourni, le modèle numérique de hauteur (mnh) parfois appelé modèle numérique d'élévation (mne) s'obtient par simple différence entre le mns et le mnt.
 
 \subsubsection{CreateStack}
-La fonction \texttt{\textbf{CreateStack}} permet également d'harmoniser plus de 2 rasters à partir d'une liste, le premier servant également de référence. cette fonction permet également de découper l'ensemble des rasters selon un périmètre
+La fonction \texttt{\textbf{CreateStack}} permet également d'harmoniser plus de 2 rasters à partir d'une liste, le premier servant également de référence. cette fonction permet de découper l'ensemble des rasters selon un périmètre, mais aussi d'exclure selon un second polygone.
 
 <<eval=F>>=
+mns <- system.file("MNS.tif", package = "Forestree")
+mnt <- system.file("MNT.tif", package = "Forestree")
+irc <- system.file("IRC.tif", package = "Forestree")
+listeRaster <- c(mns,mnt,irc)
+data(cad)
 
+s <- CreateStack(listeRaster, noms=c("mns","mnt","irc"), cad)
+plot(s)
 @
-
-
 
 
 \subsubsection{JP2toTIF}

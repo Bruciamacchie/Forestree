@@ -87,6 +87,8 @@ class(rn)
 rn <- DecoupRN(formatSf = F, dept = F)
 class(rn)
 
+
+
 ####################### MNH ##################
 # library(ForestTools)
 library(raster)

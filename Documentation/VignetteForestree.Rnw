@@ -619,6 +619,21 @@ print(xtable(res$Surfaces, caption = "Surface cadastrale des parcelles forestiè
 \section{Données numériques}
 De plus en plus d'organismes mettent à disposition des données numériques. C'est le cas par exemple de l'IGN, du muséum d'histoire naturelles. Les données les plus anciennes sont en général gratuites, les données plus récentes et plus précises étant payantes. Des régions ou des départements ont créés des coopératives de données pour faciliter leur mise à disposition. C'est le cas de la région Grand-Est par le biais de son service CIGAL.
 
+\subsection{Outils raster}
+
+\subsubsection{JP2toTIF}
+JP2 est un format d'image de plus en plus utilisé (c'est le cas de l'IGN) car il a l'avantage d'être plus comprimé. En revanche de nombreuses fonctions sous R ne peuvent le lire directement. Il faut pour cela le convertir dans un autre format, par exemple TIF. C'est le but de la fonction \texttt{\textbf{JP2toTIF}}.
+
+<<eval=F>>=
+JP2toTIF()
+@
+
+\subsection{Outils vecteur}
+
+\subsubsection{Recherche voisins}
+
+
+
 \subsection{Découpes territoriales de la France}
 
 \subsubsection{Régions naturelles, sylvoégorégions, grecos, type de climat}

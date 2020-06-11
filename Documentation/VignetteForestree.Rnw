@@ -621,6 +621,29 @@ De plus en plus d'organismes mettent à disposition des données numériques. C'
 
 \subsection{Outils raster}
 
+\subsubsection{Harmonisation rasters}\label{ParaHarmo}
+Lorsque l'on souhaite utiliser ces données (MNS, MNT) (voir paragraphe \ref{ParaMNH}) qui se présentent généralement sous forme de rasters, la première difficulté à surmonter est de les harmoniser car en général elles n'ont pas même résolution, point d'origine ou zone d'extension. C'est l'objectif de la fonction \texttt{HarmoniseRaster}.
+<<eval=F>>=
+file <- system.file("MNS.tif", package = "Forestree")
+mns <- raster(file)
+file <- system.file("MNT.tif", package = "Forestree")
+mnt <- raster(file)
+
+result <- HarmoniseRaster(mns, mnt, resout = 1)
+@
+Dans la fonction \texttt{HarmoniseRaster} le pemier raster sert de référence (origine et zone d'extension). Il est possible de modifier sa résolution. Ces 3 paramètres seront utilisés pour modifier le deuxième raster. La fonction renvoie une liste contenant les 2 rasters. Ils peuvent alors être manipulés.
+dans l'exemple fourni, le modèle numérique de hauteur (mnh) parfois appelé modèle numérique d'élévation (mne) s'obtient par simple différence entre le mns et le mnt.
+
+\subsubsection{CreateStack}
+La fonction \texttt{\textbf{CreateStack}} permet également d'harmoniser plus de 2 rasters à partir d'une liste, le premier servant également de référence. cette fonction permet également de découper l'ensemble des rasters selon un périmètre
+
+<<eval=F>>=
+
+@
+
+
+
+
 \subsubsection{JP2toTIF}
 JP2 est un format d'image de plus en plus utilisé (c'est le cas de l'IGN) car il a l'avantage d'être plus comprimé. En revanche de nombreuses fonctions sous R ne peuvent le lire directement. Il faut pour cela le convertir dans un autre format, par exemple TIF. C'est le but de la fonction \texttt{\textbf{JP2toTIF}}.
 
@@ -703,23 +726,12 @@ Ayant récupéré le MNS auprès du CIGAL et à condition de posséder un Modèl
 \end{figure}
 \end{minipage}
 
-\subsubsection{Harmonisation}\label{ParaHarmo}
-Lorsque l'on souhaite utiliser ces données (MNS, MNT) qui se présentent génaralement sous forme de rasters, la première difficulté à surmonter est de les harmoniser car en général elles n'ont pas même résolution, point d'origine ou zone d'extension. C'est l'objectif de la fonction \texttt{HarmoniseRaster}.
-<<eval=F>>=
-file <- system.file("MNS.tif", package = "Forestree")
-mns <- raster(file)
-file <- system.file("MNT.tif", package = "Forestree")
-mnt <- raster(file)
-
-result <- HarmoniseRaster(mns, mnt, resout = 1)
-@
-Dans la fonction \texttt{HarmoniseRaster} le pemier raster sert de référence (origine et zone d'extension). Il est possible de modifier sa résolution. Ces 3 paramètres seront utilisés pour modifier le deuxième raster. La fonction renvoie une liste contenant les 2 rasters. Ils peuvent alors être manipulés.
-dans l'exemple fourni, le modèle numérique de hauteur (mnh) parfois appelé modèle numérique d'élévation (mne) s'obtient par simple différence entre le mns et le mnt.
 
 
 
 
-\subsubsection{Calcul du MNH}
+
+\subsubsection{Calcul du MNH}\label{ParaMNH}
 
 \begin{minipage}{0.45\linewidth}
 Les MNS et MNT harmonisés grâce à la fonction \texttt{HarmoniseRaster} (voir paragraphe \ref{ParaHarmo}) permettent par simple différence de calculer des Modèles Numériques de Hauteur (MNH). Dans la figure \ref{MNH} l'échelle à droite est celle des hauteurs.

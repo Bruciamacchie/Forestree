@@ -631,9 +631,35 @@ JP2toTIF()
 \subsection{Outils vecteur}
 
 \subsubsection{Recherche voisins}
+La fonction \textbf{\texttt{Voisins}} renvoie l'objet sf fourni en entrée avec deux géométries supplémentaires,
+l'une correspondant pour chaque polygone à l'union des voisins (geom2), l'autre à l'union du polygone avec ses voisins (geom1).
 
+<<eval=F>>=
+nc = st_read(system.file("shape/nc.shp", package="sf"))
+shp <- voisins(nc)
 
+par(mfrow=c(1,2))
+st_geometry(shp) <- "geom1"
+plot(st_geometry(shp[100,]),border="blue", lwd=4)
+plot(st_geometry(nc[100,]), col="grey90", add=T)
+plot(st_geometry(nc), border="red", lwd=1.5, add=T)
 
+st_geometry(shp) <- "geom2"
+plot(st_geometry(shp[100,]),border="blue", lwd=4)
+plot(st_geometry(nc[100,]), col="grey90", add=T)
+plot(st_geometry(nc), border="red", lwd=1.5, add=T)
+par(mfrow=c(1,1))
+@
+
+\begin{figure}[H]
+\begin{center}
+ \includegraphics[width=14cm]{/Users/maxbruciamacchie/pCloud Sync/Packages/Forestree/vignettes/Images/Voisins.pdf}
+\caption{\emph{Fonction Voisins, ajout de géométries.}}
+\label{Voisins}
+\end{center}
+\end{figure}
+
+Dans la figure \ref{fig:Voisins} le polygon de référence est colorié en gris. Les polygones voisins assemblés sont délimités en bleu. Les limites des anciens polygones sont en rouge.
 \subsection{Découpes territoriales de la France}
 
 \subsubsection{Régions naturelles, sylvoégorégions, grecos, type de climat}

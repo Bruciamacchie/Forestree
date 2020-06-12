@@ -342,6 +342,12 @@ EssenceClimat(c("10","11"))
 @
 
 
+\subsubsection{EvolEssence}
+La fonction \textbf{\texttt{EvolEssence}} utilise les bases de données de l'IFN pour analyser la répartion d'une essence par classe de diamètre et découpage de la France métropolitaine en greco ou type de climat.
+<<eval=F>>=
+EvolEssence(ess="05", group="climat")
+@
+
 
 \section{Milieux}
 
@@ -467,6 +473,17 @@ La figure \ref{CompareMNT} permet de comparer le MNT de l'IGN vendu à une réso
 \label{CompareMNT}
 \end{center}
 \end{figure}
+
+La figure \ref{CompareMNT} peut être complétée par la figure \ref{CompareAWSIGN} qui utilise les points du réseau géodésiques de l'IGN. Dans ette dernière les altitudes en abscisse sont celles du réseau géodésique. Elles servent de référence. Les altitudes en ordonnée sont celles extraites des 2 sources, Aws et IGN. Le réseau géodésique de l'IGN permet de distinguer les points de type 1 plus précis que ceux de type 2. La figure \ref{CompareMNT} permet de constater que les altitudes extraites du MNT de l'IGN ne correspondent pas parfaitement à celles mesurées sur les points géodésiques.
+
+\begin{figure}[H]
+\begin{center}
+ \includegraphics[width=14cm]{/Users/maxbruciamacchie/pCloud Sync/Packages/Forestree/vignettes/Images/CompareAWSIGN.png}
+\caption{\emph{Comparaison des altitudes extraites des MNT issus du serveur Aws ou IGN avec celles mesurées sur les points géodésiques.}}
+\label{CompareAWSIGN}
+\end{center}
+\end{figure}
+
 
 
 \subsubsection{package tanaka}
@@ -739,7 +756,7 @@ Ayant récupéré le MNS auprès du CIGAL et à condition de posséder un Modèl
 \subsubsection{Calcul du MNH}\label{ParaMNH}
 
 \begin{minipage}{0.45\linewidth}
-Les MNS et MNT harmonisés grâce à la fonction \texttt{HarmoniseRaster} (voir paragraphe \ref{ParaHarmo}) permettent par simple différence de calculer des Modèles Numériques de Hauteur (MNH). Dans la figure \ref{MNH} l'échelle à droite est celle des hauteurs.
+Les MNS et MNT harmonisés grâce à la fonction \texttt{\textbf{HarmoniseRaster}} (voir paragraphe \ref{ParaHarmo}) permettent par simple différence de calculer des Modèles Numériques de Hauteur (MNH). Dans la figure \ref{MNH} l'échelle à droite est celle des hauteurs.
 <<eval=F>>=
 mns <- result[[1]]
 mnt <- result[[2]]
@@ -836,6 +853,15 @@ plot(st_geometry(Placettes), add=T)
 \label{GB17}
 \end{center}
 \end{figure}
+
+
+\section{Desserte}
+\subsection{Profil en long}
+La fonction \texttt{\textbf{DessertePL}} permet de visualiser le profil en long de tout élément de la desserte.
+<<eval=f>>=
+DessertePL
+@
+
 
 
 \section{Estimation forestière}

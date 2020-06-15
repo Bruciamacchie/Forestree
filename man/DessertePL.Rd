@@ -14,7 +14,7 @@ DessertePL(shp, r, pas = 25)
 \item{pas}{= résolution.  Par défaut pas = 25m}
 }
 \description{
-Cette fonction permet de visualiser le profil en long de tout éléments de la desserte.
+Cette fonction permet de visualiser le profil en long de tout élément de la desserte.
 }
 \examples{
 

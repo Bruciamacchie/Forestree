@@ -862,6 +862,20 @@ La fonction \texttt{\textbf{DessertePL}} permet de visualiser le profil en long 
 DessertePL
 @
 
+\subsection{Buffer dissymétrique}
+La création d'un buffer dissymétrique est nécessaire pour cartographier les zones exploitables par skidder en montagne.
+
+<<eval=F>>=
+projet <- st_read("~/pCloud Sync/Cours/APT3/MicroProjetsR/2018/Micro1/Projet.shp", quiet=T)
+mnt <- SiteMnt(projet, buffer=400, zoom=14)
+# mnt <- raster("/Users/maxbruciamacchie/Desktop/Pimodan/raster/MNT/MNT.tif")
+
+buf <- BufferDissy(projet, mnt, conc=1.8)
+
+plot(mnt)
+plot(st_geometry(projet), add=T)
+plot(st_geometry(buf), add=T, border='red')
+@
 
 
 \section{Estimation forestière}

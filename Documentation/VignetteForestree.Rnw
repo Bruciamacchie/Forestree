@@ -858,24 +858,70 @@ plot(st_geometry(Placettes), add=T)
 \section{Desserte}
 \subsection{Profil en long}
 La fonction \texttt{\textbf{DessertePL}} permet de visualiser le profil en long de tout élément de la desserte.
-<<eval=f>>=
+<<eval=F>>=
 DessertePL
 @
 
-\subsection{Buffer dissymétrique}
-La création d'un buffer dissymétrique est nécessaire pour cartographier les zones exploitables par skidder en montagne.
+\subsection{Cartographie des zones exploitables par tracteur}
+
+\subsubsection{fonction AmontAval}
+La création d'un buffer dissymétrique est nécessaire pour cartographier les zones exploitables par skidder en montagne. C'est l'objet de la fonction \texttt{\textbf{AmontAval}}. Elle s'appuie sur la desserte existante (routes, pistes). Elle possède comme argument un buffer amont (par défaut 50m), un buffer aval (par défaut 150m), le choix d'une résolution le long de la desserte, ainsi qu'un indice de concavité. La fonction \texttt{\textbf{AmontAval}} peut être utilisée seule, mais ne peut être appliquée qu'à un seul linéaire. C'est le cas de la deuxième portion de route dans l'exemple ci-après.
 
 <<eval=F>>=
 projet <- st_read("~/pCloud Sync/Cours/APT3/MicroProjetsR/2018/Micro1/Projet.shp", quiet=T)
 mnt <- SiteMnt(projet, buffer=400, zoom=14)
-# mnt <- raster("/Users/maxbruciamacchie/Desktop/Pimodan/raster/MNT/MNT.tif")
 
-buf <- BufferDissy(projet, mnt, conc=1.8)
+num=2
+buf <- AmontAval(projet[num,], mnt, amont=50, aval=150, pas=50, conc=1.8)
 
-plot(mnt)
+plot(mnt, axes=F, box=F)
+plot(st_geometry(projet[num,]), add=T)
+plot(st_geometry(buf), add=T, border='red')
+@
+
+\begin{figure}[H]
+\begin{center}
+ \includegraphics[width=10cm]{/Users/maxbruciamacchie/pCloud Sync/Packages/Forestree/Vignettes/Images/AmontAval.png}
+\caption{\emph{Exemple de buffer dissymétrique le long d'une desserte.}}
+\label{AmontAval}
+\end{center}
+\end{figure}
+
+\subsubsection{fonction BufferDissy}
+La fonction \texttt{\textbf{BufferDissy}} permet de calculer le buffer dissymétrique le long de plusieurs éléments de desserte contigus.
+<<eval=F>>=
+# projet <- st_read("~/pCloud Sync/Cours/APT3/MicroProjetsR/2018/Micro1/Projet.shp", quiet=T)
+# mnt <- SiteMnt(projet, buffer=400, zoom=14)
+
+buf <- BufferDissy(projet, mnt, amont=50, aval=150, pas=50, conc=1.8)
+
+plot(mnt, axes=F, box=F)
 plot(st_geometry(projet), add=T)
 plot(st_geometry(buf), add=T, border='red')
 @
+
+
+\subsubsection{Zones exploitables par tracteurs}
+La fonction \texttt{\textbf{ExploiTracteur}} complète la fonction \texttt{\textbf{BufferDissy}} en incluant les zones planes.
+<<eval=F>>=
+# projet <- st_read("~/pCloud Sync/Cours/APT3/MicroProjetsR/2018/Micro1/Projet.shp", quiet=T)
+# mnt <- SiteMnt(projet, buffer=400, zoom=14)
+
+buf <- BufferDissy(projet, mnt, amont=50, aval=150, pas=50, conc=1.8)
+
+plot(mnt, axes=F, box=F)
+plot(st_geometry(projet), add=T)
+plot(st_geometry(buf), add=T, border='red')
+@
+
+
+
+<<eval=F>>=
+projet <- st_read("~/pCloud Sync/Cours/APT3/MicroProjetsR/2018/Micro1/Projet.shp", quiet=T)
+mnt <- SiteMnt(projet, buffer=400, zoom=13)
+
+@
+
 
 
 \section{Estimation forestière}

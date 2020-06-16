@@ -75,7 +75,7 @@ library(PPtools)
 Package Forestree\\
 \end{LARGE}
 Max Bruciamacchie\\
-mars 2018\\
+mars 2020\\
 \end{center}
 
 \vspace{2cm}
@@ -859,7 +859,9 @@ plot(st_geometry(Placettes), add=T)
 \subsection{Profil en long}
 La fonction \texttt{\textbf{DessertePL}} permet de visualiser le profil en long de tout élément de la desserte.
 <<eval=F>>=
-DessertePL
+projet <- st_read("~/pCloud Sync/Cours/APT3/MicroProjetsR/2018/Micro1/Projet.shp", quiet=T)
+mnt <- SiteMnt(projet, buffer=400, zoom=12)
+DessertePL(projet[2,], mnt, pas=50)
 @
 
 \subsection{Cartographie des zones exploitables par tracteur}
@@ -902,19 +904,21 @@ plot(st_geometry(buf), add=T, border='red')
 
 
 \subsubsection{Zones exploitables par tracteurs}
-La fonction \texttt{\textbf{ExploiTracteur}} complète la fonction \texttt{\textbf{BufferDissy}} en incluant les zones planes.
+La fonction \texttt{\textbf{ExploiTracteur}} complète la fonction \texttt{\textbf{BufferDissy}} en incluant les zones planes. Dans la figure \ref{ExploiTracteur}, les zones grisées sont considérées comme planes, la desserte est en bleu, les zones planes accessibles par la route sont en vert, la zone exploitable par tracteur est délimitée en rouge.
 <<eval=F>>=
 # projet <- st_read("~/pCloud Sync/Cours/APT3/MicroProjetsR/2018/Micro1/Projet.shp", quiet=T)
 # mnt <- SiteMnt(projet, buffer=400, zoom=14)
 
-buf <- BufferDissy(projet, mnt, amont=50, aval=150, pas=50, conc=1.8)
-
-plot(mnt, axes=F, box=F)
-plot(st_geometry(projet), add=T)
-plot(st_geometry(buf), add=T, border='red')
+buf <- ExploiTracteur(projet, mnt, amont=50, aval=150, pas=50, conc=1.8, plane=0.3)
 @
 
-
+\begin{figure}[H]
+\begin{center}
+ \includegraphics[width=10cm]{/Users/maxbruciamacchie/pCloud Sync/Packages/Forestree/Vignettes/Images/ExploiTracteur.pdf}
+\caption{\emph{Cartographie de la surface exploitable par tracteur.}}
+\label{ExploiTracteur}
+\end{center}
+\end{figure}
 
 <<eval=F>>=
 projet <- st_read("~/pCloud Sync/Cours/APT3/MicroProjetsR/2018/Micro1/Projet.shp", quiet=T)

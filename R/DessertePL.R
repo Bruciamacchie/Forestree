@@ -17,8 +17,12 @@
 #' @export
 
 DessertePL <- function(shp, r, pas = 25) {
-  if (st_geometry_type(shp) != "LINESTRING") {
-    stop("La fonction nécessite en entrée un objet de type LINESTRING")
+  # --------- TESTS --------
+  if(!inherits(shp, "sf") & !(st_geometry_type(st_union(shp)) %in% c("LINESTRING", "MULTILINESTRING"))) {
+    stop(cat("la fonction nécessite en entrée un objet sf de type LINESTRING."))
+  }
+  if(class(r) != "RasterLayer") {
+    stop(cat("la fonction nécessite en entrée un objet de type rasterLayer"))
   }
 
   shp <- shp %>% dplyr::select(geometry)

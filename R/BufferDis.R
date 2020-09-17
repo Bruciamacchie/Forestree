@@ -11,7 +11,7 @@
 #'
 #' @import sf
 #' @import raster
-#' @import dplyr
+#' @import tidyverse
 #'
 #' @author Bruciamacchie Max
 #'
@@ -123,11 +123,7 @@ BufferDis <- function (line, r, amont=50, aval=150, pas=50) {
       # plot(st_geometry(droite), add=T, col='blue', pch=3)
       # plot(st_geometry(droite1), add=T, col='green', pch=3)
 
-
-
-
       # ----------- Perpendiculaires
-
 
       gauche <- coords %>%
         filter(!is.na(X2)) %>%

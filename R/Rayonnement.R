@@ -38,10 +38,10 @@ Rayonnement <- function(shp, dem, buffer=100) {
     st_transform(4326) %>%
     st_coordinates()
   # ------- Decoupage raster
-  crs(mnt) = st_crs(shp)$proj4string
+  crs(dem) = st_crs(shp)$proj4string
   dem = crop(dem, as(shp1, "Spatial"))
   # ------- Parametres
-  demm = raster:::as.matrix(dem) # transformation du MNT en matrice
+  demm = raster::as.matrix(dem) # transformation du MNT en matrice
   dl = res(dem)[1]
   height = mean(demm)
   visibility=40

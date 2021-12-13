@@ -37,6 +37,9 @@ SiteMnt <- function(shp, buffer=50, zoom=14, epsg=NULL) {
   if (!is.numeric(buffer)) {
     stop("Le buffer doit être un entier.")
   }
+  if (is.na(st_crs(shp))) {
+    stop("Le périmètre doit posséder un système de projection.")
+  }
 
   shp <- st_buffer(shp, dist=buffer)
   zoom = max(zoom, 9)

@@ -22,5 +22,5 @@ RisqueClient <- function(tauxAss=0.003, tauxAct=0.03, tauxSauv, Cycle) {
   n      <- 1000000
   seuil  <- round(log((1-tauxSauv)*tauxAct/tauxAss+1)/log(1+tauxAct),0)
   risque <- round(sum(rexp(n, 1/Cycle) > seuil)/n, 2)
-  c(seuil,risque)
+  return(c(seuil,risque))
 }

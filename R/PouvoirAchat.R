@@ -19,8 +19,9 @@
 #' @export
 
 PouvoirAchat <- function(an) {
-  if (is.numeric(an) & an <= 2019 & an >=1950 ) {
-    data("INSEEpa")
+  data("INSEEpa")
+  if (is.numeric(an) & an >=1950 & an <= max(INSEEpa$Année)) {
+
     euro=6.55957
     tab <- INSEEpa %>% filter(Année <= an)
     valmax = tab$Infla[dim(tab)[1]]
@@ -32,5 +33,6 @@ PouvoirAchat <- function(an) {
              Coefft = Coefft * Infla) %>%
       dplyr::select(Année, Coefft)
     return(tab)
-  } else { print("l'année doit être un entier compris entre 1950 et 2018.")}
+  } else { print(paste0("l'année doit être un entier compris entre 1950 et ",
+                       max(INSEEpa$Année), "."))}
 }
